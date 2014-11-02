@@ -33,7 +33,7 @@ void fig_palette_set(fig_palette *self, size_t index, fig_uint32_t color) {
     self->data[index] = color;
 }
 
-int fig_palette_resize(fig_palette *self, size_t size) {
+fig_bool_t fig_palette_resize(fig_palette *self, size_t size) {
     if(self->size >= size) {
         self->size = size;
         if(size == 0) {

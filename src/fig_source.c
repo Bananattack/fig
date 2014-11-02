@@ -22,8 +22,8 @@ static size_t file_read(void *ud, void *dest, size_t size, size_t count) {
     return fread(dest, size, count, (FILE *) ud);
 }
 
-static int file_seek(void *ud, fig_offset_t offset, int whence) {
-    return !fseek((FILE *) ud, (long) offset, whence);
+static fig_bool_t file_seek(void *ud, fig_offset_t offset, fig_seek_origin_t whence) {
+    return !fseek((FILE *) ud, (long) offset, (int) whence);
 }
 
 static fig_offset_t file_tell(void *ud) {
@@ -65,16 +65,16 @@ static size_t memfile_read(void *ud, void *dest, size_t size, size_t count) {
     return count;
 }
 
-static int memfile_seek(void *ud, fig_offset_t offset, int whence) {
+static fig_bool_t memfile_seek(void *ud, fig_offset_t offset, fig_seek_origin_t whence) {
     memfile *mf = (memfile *) ud;
     switch (whence) {
-        case SEEK_SET:
+        case FIG_SEEK_SET:
             if (offset < 0 || offset >= mf->length) {
                 return 0;
             }
             mf->position = (size_t) offset;
             break;
-        case SEEK_CUR:
+        case FIG_SEEK_CUR:
             if (offset < 0) {
                 size_t magnitude = (size_t) -offset;
                 if(mf->position >= magnitude) {
@@ -91,7 +91,7 @@ static int memfile_seek(void *ud, fig_offset_t offset, int whence) {
                 }
             }
             break;
-        case SEEK_END:
+        case FIG_SEEK_END:
             if (offset < 0 || offset >= mf->length) {
                 return 0;
             }
@@ -153,7 +153,7 @@ size_t fig_source_read(fig_source *self, void *dest, size_t size, size_t count) 
     return 0;
 }
 
-int fig_source_seek(fig_source *self, fig_offset_t offset, int whence) {
+fig_bool_t fig_source_seek(fig_source *self, fig_offset_t offset, fig_seek_origin_t whence) {
     if(self->callbacks.seek) {
         return self->callbacks.seek(self->userdata, offset, whence);
     }
@@ -167,11 +167,11 @@ fig_offset_t fig_source_tell(fig_source *self) {
     return -1;
 }
 
-int fig_source_read_u8(fig_source *self, fig_uint8_t *dest) {
+fig_bool_t fig_source_read_u8(fig_source *self, fig_uint8_t *dest) {
     return fig_source_read(self, dest, 1, 1) == 1;
 }
 
-int fig_source_read_le_u16(fig_source *self, fig_uint16_t *dest) {
+fig_bool_t fig_source_read_le_u16(fig_source *self, fig_uint16_t *dest) {
     fig_uint8_t result[2];
     if(fig_source_read(self, result, 2, 1) == 1) {
         *dest = result[1] << 8 | result[0];
@@ -180,7 +180,7 @@ int fig_source_read_le_u16(fig_source *self, fig_uint16_t *dest) {
     return 0;
 }
 
-int fig_source_read_le_u32(fig_source *self, fig_uint32_t *dest) {
+fig_bool_t fig_source_read_le_u32(fig_source *self, fig_uint32_t *dest) {
     fig_uint8_t result[4];
     if(fig_source_read(self, result, 4, 1) == 1) {
         *dest = result[3] << 24 | result[2] << 16 | result[1] << 8 | result[0];

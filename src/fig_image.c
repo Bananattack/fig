@@ -40,7 +40,7 @@ size_t fig_image_get_height(fig_image *self) {
     return self->height;
 }
 
-int fig_image_resize_canvas(fig_image *self, size_t width, size_t height) {
+fig_bool_t fig_image_resize_canvas(fig_image *self, size_t width, size_t height) {
     self->width = width;
     self->height = height;
     return 1;

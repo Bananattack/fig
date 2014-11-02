@@ -5,7 +5,7 @@
 
 
 #define FIG_DEBUG
-//#define FIG_PREDEFINED_TYPES
+#define FIG_PREDEFINED_TYPES
 
 #ifdef FIG_DEBUG
 #include <assert.h>
@@ -22,15 +22,13 @@
     typedef uint32_t fig_uint32_t;
     typedef int64_t fig_offset_t;
     typedef char fig_bool_t;
-#else
-    typedef unsigned char fig_uint8_t;
-    typedef unsigned short fig_uint16_t;
-    typedef unsigned int fig_uint32_t;
-    typedef long long int fig_offset_t;
-    typedef char fig_bool_t;
 #endif
 
-
+typedef enum fig_seek_origin_t {
+    FIG_SEEK_CUR = SEEK_CUR,
+    FIG_SEEK_SET = SEEK_SET,
+    FIG_SEEK_END = SEEK_END,
+} fig_seek_origin_t;
 
 /* A palette of BRGA colors. */
 typedef struct fig_palette fig_palette;
@@ -46,7 +44,7 @@ fig_uint32_t fig_palette_get(fig_palette *self, size_t index);
 /* Set a BGRA color in the palette at the given index. 0 <= index < size. */
 void fig_palette_set(fig_palette *self, size_t index, fig_uint32_t color);
 /* Resize the palette to some capacity. Return 1 if successful, 0 otherwise. */
-int fig_palette_resize(fig_palette *self, size_t size);
+fig_bool_t fig_palette_resize(fig_palette *self, size_t size);
 /* Free a palette created with fig_create_palette. */
 void fig_palette_free(fig_palette *self);
 
@@ -102,7 +100,7 @@ size_t fig_image_get_width(fig_image *self);
 /* Get the height of the image. */
 size_t fig_image_get_height(fig_image *self);
 /* Resize the canvas area */
-int fig_image_resize_canvas(fig_image *self, size_t width, size_t height);
+fig_bool_t fig_image_resize_canvas(fig_image *self, size_t width, size_t height);
 /* Free an image created with fig_create_image. */
 void fig_image_free(fig_image *self);
 
@@ -115,8 +113,8 @@ typedef struct fig_source_callbacks {
     size_t (*read)(void *ud, void *dest, size_t size, size_t count);
 
     /* Attempt to seek to a position within the stream, and return whether
-    this was successful. whence can be SEEK_CUR, SEEK_SET or SEEK_END. */
-    int (*seek)(void *ud, fig_offset_t offset, int whence);
+    this was successful. */
+    fig_bool_t (*seek)(void *ud, fig_offset_t offset, fig_seek_origin_t whence);
 
     /* Tell the current position in the source. */
     fig_offset_t (*tell)(void *ud);
@@ -140,14 +138,14 @@ fig_source *fig_create_memory_source(void *data, size_t length);
 number of elements actually read. */
 size_t fig_source_read(fig_source *self, void *dest, size_t size, size_t count);
 /* Read a uint8_t value into the dest, return whether it succeeeded. */
-int fig_source_read_u8(fig_source *self, fig_uint8_t *dest);
+fig_bool_t fig_source_read_u8(fig_source *self, fig_uint8_t *dest);
 /* Read a little endian uint16_t into dest, return whether it was succeeded. */
-int fig_source_read_le_u16(fig_source *self, fig_uint16_t *dest);
+fig_bool_t fig_source_read_le_u16(fig_source *self, fig_uint16_t *dest);
 /* Read a little endian uint32_t into dest, return whether it was succeeded. */
-int fig_source_read_le_u32(fig_source *self, fig_uint32_t *dest);
+fig_bool_t fig_source_read_le_u32(fig_source *self, fig_uint32_t *dest);
 /* Attempt to seek to a position within the stream, and return whether
-this was successful. whence can be SEEK_CUR, SEEK_SET or SEEK_END. */
-int fig_source_seek(fig_source *self, fig_offset_t offset, int whence);
+this was successful. */
+fig_bool_t fig_source_seek(fig_source *self, fig_offset_t offset, fig_seek_origin_t whence);
 fig_offset_t fig_source_tell(fig_source *self);
 /* Free a source created with one of the fig_create_source functions. */
 void fig_source_free(fig_source *self);
