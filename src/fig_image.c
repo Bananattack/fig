@@ -9,7 +9,7 @@ typedef struct fig_image {
 } fig_image;
 
 fig_image *fig_create_image() {
-    fig_image *self = malloc(sizeof(fig_image));
+    fig_image *self = (fig_image *) malloc(sizeof(fig_image));
     if(self != NULL) {
         self->width = 0;
         self->height = 0;
