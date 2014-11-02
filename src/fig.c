@@ -10,9 +10,7 @@ int main(int argc, char **argv) {
     fig_image *image;
     fig_palette *palette;
     fig_animation *anim;
-    int success;
 
-    success = 0;
     f = fopen("../examples/FullColourGIF.gif", "rb");
     if(f == NULL) {
         return 1;
@@ -53,5 +51,5 @@ int main(int argc, char **argv) {
     fig_source_free(src);
     fclose(f);
 
-    return !success;
+    return 0;
 }
