@@ -368,6 +368,7 @@ fig_image *fig_load_gif(fig_source *src) {
                 gif_read_image_desc(src, &image_desc);
                 anim = fig_image_get_animation(image);
                 frame = fig_animation_add(anim);
+
                 if(frame == NULL
                 || !fig_frame_resize_canvas(frame, image_desc.width, image_desc.height)) {
                     goto failure;
