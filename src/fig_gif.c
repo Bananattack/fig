@@ -295,7 +295,7 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_desc *image_des
 
 fig_image *fig_load_gif(fig_source *src) {
     gif_format gif;
-    fig_image *img;
+    fig_image *image;
     fig_bool_t done;
     
     if(src == NULL) {
@@ -309,14 +309,14 @@ fig_image *fig_load_gif(fig_source *src) {
         return NULL;
     }
 
-    img = fig_create_image();
-    if(img == NULL
-    || !fig_image_resize_canvas(img, gif.width, gif.height)) {
+    image = fig_create_image();
+    if(image == NULL
+    || !fig_image_resize_canvas(image, gif.width, gif.height)) {
         goto failure;
     }
 
     if(gif.global_colors > 0
-    && !gif_read_palette(src, gif.global_colors, fig_image_get_palette(img))) {
+    && !gif_read_palette(src, gif.global_colors, fig_image_get_palette(image))) {
         goto failure;
     }
 
@@ -365,7 +365,7 @@ fig_image *fig_load_gif(fig_source *src) {
                 gif_image_desc image_desc;
                 
                 gif_read_image_desc(src, &image_desc);
-                anim = fig_image_get_animation(img);
+                anim = fig_image_get_animation(image);
                 frame = fig_animation_add(anim);
                 if(frame == NULL
                 || !fig_frame_resize_canvas(frame, image_desc.width, image_desc.height)) {
@@ -375,9 +375,11 @@ fig_image *fig_load_gif(fig_source *src) {
                 && !gif_read_palette(src, image_desc.local_colors, fig_frame_get_palette(frame))) {
                     goto failure;
                 }
-                if(!gif_read_image_data(src, &image_desc, fig_frame_get_pixel_data(frame))) {
+                if(!gif_read_image_data(src, &image_desc, fig_frame_get_index_data(frame))) {
                     goto failure;
                 }
+
+                fig_frame_apply_index(frame, image);
                 break;
             }
             case GIF_BLOCK_TERMINATOR: {
@@ -389,8 +391,8 @@ fig_image *fig_load_gif(fig_source *src) {
         }
     }
 
-    return img;
+    return image;
 failure:
-    fig_image_free(img);
+    fig_image_free(image);
     return NULL;
 }

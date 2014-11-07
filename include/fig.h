@@ -32,11 +32,20 @@ typedef int fig_validate_uint16_t[sizeof(fig_uint16_t) == 2 && (fig_uint16_t) -1
 typedef int fig_validate_uint32_t[sizeof(fig_uint32_t) == 4 && (fig_uint32_t) -1 >= 0 ? 1 : -1];
 typedef int fig_validate_offset_t[sizeof(fig_offset_t) >= 4 && (fig_offset_t) -1 < 0 ? 1 : -1];
 
+typedef struct fig_palette fig_palette;
+typedef struct fig_frame fig_frame;
+typedef struct fig_animation fig_animation;
+typedef struct fig_image fig_image;
+typedef struct fig_source_callbacks fig_source_callbacks;
+typedef struct fig_source fig_source;
+
 typedef enum fig_seek_origin_t {
     FIG_SEEK_SET = SEEK_SET,
     FIG_SEEK_CUR = SEEK_CUR,
     FIG_SEEK_END = SEEK_END,
 } fig_seek_origin_t;
+
+
 
 /* A palette of BRGA colors. */
 typedef struct fig_palette fig_palette;
@@ -51,8 +60,6 @@ fig_uint32_t *fig_palette_get_color_data(fig_palette *self);
 fig_uint32_t fig_palette_get(fig_palette *self, size_t index);
 /* Set a BGRA color in the palette at the given index. 0 <= index < size. */
 void fig_palette_set(fig_palette *self, size_t index, fig_uint32_t color);
-
-void fig_palette_copy(fig_palette *self);
 /* Resize the palette to some capacity. Return 1 if successful, 0 otherwise. */
 fig_bool_t fig_palette_resize(fig_palette *self, size_t size);
 /* Free a palette created with fig_create_palette. */
@@ -67,14 +74,18 @@ typedef struct fig_frame fig_frame;
 fig_frame *fig_create_frame(void);
 /* Get the palette associated with the image. */
 fig_palette *fig_frame_get_palette(fig_frame *self);
-/* Get the palette associated with the image. */
-fig_uint8_t *fig_frame_get_pixel_data(fig_frame *self);
+/* Get a raw pointer to image index data. */
+fig_uint8_t *fig_frame_get_index_data(fig_frame *self);
+/* Get a raw pointer to image BGRA color data. */
+fig_uint32_t *fig_frame_get_color_data(fig_frame *self);
 /* Get the width of the image. */
 size_t fig_frame_get_width(fig_frame *self);
 /* Get the height of the image. */
 size_t fig_frame_get_height(fig_frame *self);
 /* Resize the canvas area */
 fig_bool_t fig_frame_resize_canvas(fig_frame *self, size_t width, size_t height);
+/* Update the color data by converting the index data into BGRA colors. */
+void fig_frame_apply_index(fig_frame *self, fig_image *image);
 /* Free a frame created with fig_create_frame. */
 void fig_frame_free(fig_frame *self);
 
