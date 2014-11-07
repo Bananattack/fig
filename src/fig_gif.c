@@ -148,7 +148,6 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_desc *image_des
     fig_uint8_t bits;
     fig_uint32_t value;
     fig_uint8_t first_char;
-
     size_t x;
     size_t y;
     fig_uint8_t pass;
@@ -179,12 +178,10 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_desc *image_des
 
     memset(char_stack, 0, sizeof(char_stack));
     char_stack_size = 0;
-
     sub_block_length = 0;
     bits = 0;
     value = 0;
     first_char = 0;
-
     x = 0;
     y = 0;
     pass = image_desc->interlace ? 3 : 0;
