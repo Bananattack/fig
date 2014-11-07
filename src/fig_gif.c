@@ -189,11 +189,10 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_desc *image_des
     y = 0;
     pass = image_desc->interlace ? 3 : 0;
     y_increment = image_desc->interlace ? 8 : 1;
-    printf("Code size %d, avail %d\n", code_size, avail);
 
     for(;;) {
         if (bits < code_size) {
-            uint8_t n;
+            fig_uint8_t n;
 
             if(sub_block_length == 0) {
                 if(!fig_source_read_u8(src, &sub_block_length)) {
@@ -281,7 +280,7 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_desc *image_des
             }
 
             while(char_stack_size > 0) {
-                uint8_t top;
+                fig_uint8_t top;
                 if(y >= image_desc->height) {
                     return 0;
                 }
@@ -299,8 +298,6 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_desc *image_des
                         --pass;
                     }
                 }
-
-                //printf("%d ", top);
             }
         }
     }

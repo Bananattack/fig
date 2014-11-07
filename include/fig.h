@@ -3,30 +3,38 @@
 
 #include <stdio.h>
 
-
-#define FIG_DEBUG
-#define FIG_PREDEFINED_TYPES
-
-#ifdef FIG_DEBUG
-#include <assert.h>
-#define FIG_ASSERT(x) assert(x)
-#else
-#define FIG_ASSERT(x) ((void) 0)
+#ifndef FIG_ASSERT
+    #include <assert.h>
+    #define FIG_ASSERT(x) assert(x)
 #endif
 
-#ifdef FIG_PREDEFINED_TYPES
-    #include <stdint.h>
-
-    typedef uint8_t fig_uint8_t;
-    typedef uint16_t fig_uint16_t;
-    typedef uint32_t fig_uint32_t;
-    typedef int64_t fig_offset_t;
-    typedef char fig_bool_t;
+#ifndef FIG_TYPEDEFS
+    #define FIG_TYPEDEFS
+    #if defined(_MSC_VER)
+        typedef unsigned __int8 fig_uint8_t;
+        typedef unsigned __int16 fig_uint16_t;
+        typedef unsigned __int32 fig_uint32_t;
+        typedef __int64 fig_offset_t;
+        typedef char fig_bool_t;
+    #elif __STDC_VERSION__ >= 199901L
+        #include <stdint.h>
+        #include <stdbool.h>
+        typedef uint8_t fig_uint8_t;
+        typedef uint16_t fig_uint16_t;
+        typedef uint32_t fig_uint32_t;
+        typedef int64_t fig_offset_t;
+        typedef bool fig_bool_t;
+    #endif
 #endif
+
+typedef int fig_validate_uint8_t[sizeof(fig_uint8_t) == 1 && (fig_uint8_t) -1 >= 0 ? 1 : -1];
+typedef int fig_validate_uint16_t[sizeof(fig_uint16_t) == 2 && (fig_uint16_t) -1 >= 0 ? 1 : -1];
+typedef int fig_validate_uint32_t[sizeof(fig_uint32_t) == 4 && (fig_uint32_t) -1 >= 0 ? 1 : -1];
+typedef int fig_validate_offset_t[sizeof(fig_offset_t) >= 4 && (fig_offset_t) -1 < 0 ? 1 : -1];
 
 typedef enum fig_seek_origin_t {
-    FIG_SEEK_CUR = SEEK_CUR,
     FIG_SEEK_SET = SEEK_SET,
+    FIG_SEEK_CUR = SEEK_CUR,
     FIG_SEEK_END = SEEK_END,
 } fig_seek_origin_t;
 
@@ -43,6 +51,8 @@ fig_uint32_t *fig_palette_get_color_data(fig_palette *self);
 fig_uint32_t fig_palette_get(fig_palette *self, size_t index);
 /* Set a BGRA color in the palette at the given index. 0 <= index < size. */
 void fig_palette_set(fig_palette *self, size_t index, fig_uint32_t color);
+
+void fig_palette_copy(fig_palette *self);
 /* Resize the palette to some capacity. Return 1 if successful, 0 otherwise. */
 fig_bool_t fig_palette_resize(fig_palette *self, size_t size);
 /* Free a palette created with fig_create_palette. */
