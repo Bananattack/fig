@@ -11,25 +11,21 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\fig.h" />
-    <ClInclude Include="..\include\fig_config.h" />
+    <ClCompile Include="..\..\tests\fig_gif2ppm.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\fig_animation.c" />
-    <ClCompile Include="..\src\fig_frame.c" />
-    <ClCompile Include="..\src\fig_palette.c" />
-    <ClCompile Include="..\src\fig_source.c" />
-    <ClCompile Include="..\src\fig_gif.c" />
-    <ClCompile Include="..\src\fig_image.c" />
+    <ProjectReference Include="..\fig.vcxproj">
+      <Project>{eb138de3-5f23-4cc7-abae-e5813495a0af}</Project>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{EB138DE3-5F23-4CC7-ABAE-E5813495A0AF}</ProjectGuid>
+    <ProjectGuid>{BFC48A4A-7DBC-439D-9315-CFF484921351}</ProjectGuid>
     <RootNamespace>fig</RootNamespace>
-    <ProjectName>fig</ProjectName>
+    <ProjectName>fig_gif2ppm</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v120_xp</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
