@@ -36,7 +36,6 @@ enum {
 
 typedef struct {
     char version[3];
-
     fig_uint16_t width;
     fig_uint16_t height;
     size_t global_colors;
@@ -108,6 +107,7 @@ static fig_bool_t gif_read_image_desc(fig_source *src, gif_image_desc *image_des
 
 static fig_bool_t gif_skip_sub_blocks(fig_source *src) {
     fig_uint8_t length;
+
     do {
         if(!fig_source_read_u8(src, &length)) {
             return 0;
@@ -162,7 +162,6 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_desc *image_des
     
     clear = 1 << min_code_size;
     eoi = clear + 1;
-
     code_size = min_code_size + 1;
     code_mask = (1 << code_size) - 1;
     avail = eoi + 1;
@@ -170,6 +169,7 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_desc *image_des
     
     {
         fig_uint16_t i;
+
         for(i = 0; i < clear; ++i) {
             prefix_codes[i] = GIF_LZW_NULL_CODE;
             suffix_chars[i] = i & 0xFF;
@@ -189,7 +189,7 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_desc *image_des
 
     for(;;) {
         if (bits < code_size) {
-            fig_uint8_t n;
+            fig_uint8_t byte;
 
             if(sub_block_length == 0) {
                 if(!fig_source_read_u8(src, &sub_block_length)) {
@@ -199,15 +199,15 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_desc *image_des
                     return 1;
                 }
             }
-            --sub_block_length;
-
-            if(!fig_source_read_u8(src, &n)) {
+            if(!fig_source_read_u8(src, &byte)) {
                 return 0;
             }
-            value |= n << bits;
+            value |= byte << bits;
             bits += 8;
+            --sub_block_length;
         } else {
             fig_uint16_t code = value & code_mask;
+
             value >>= code_size;
             bits -= code_size;
 
@@ -220,11 +220,8 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_desc *image_des
                 fig_source_seek(src, sub_block_length, FIG_SEEK_CUR);
                 return gif_skip_sub_blocks(src);
             } else if(old_code == GIF_LZW_NULL_CODE) {
-                if(code >= GIF_LZW_MAX_CODES) {
-                    return 0;
-                }
-                FIG_ASSERT(code < 0x100);
-                if(char_stack_size >= GIF_LZW_MAX_STACK_SIZE) {
+                if(code >= GIF_LZW_MAX_CODES
+                || char_stack_size >= GIF_LZW_MAX_STACK_SIZE) {
                     return 0;
                 }
                 char_stack[char_stack_size++] = suffix_chars[code];
@@ -232,7 +229,6 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_desc *image_des
                 old_code = code;
             } else if(code <= avail) {
                 fig_uint16_t current_code = code;
-                fig_uint16_t prev_code;
 
                 if(current_code == avail) {
                     if(char_stack_size >= GIF_LZW_MAX_STACK_SIZE) {
@@ -241,13 +237,12 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_desc *image_des
                     char_stack[char_stack_size++] = first_char;
                     current_code = old_code;
                 }
-                prev_code = current_code;
                 while(current_code >= clear) {
-                    if(current_code > prev_code || current_code >= GIF_LZW_MAX_CODES || current_code == prefix_codes[current_code] || char_stack_size >= GIF_LZW_MAX_STACK_SIZE) {
+                    if(current_code >= GIF_LZW_MAX_CODES
+                    || char_stack_size >= GIF_LZW_MAX_STACK_SIZE) {
                         return 0;
                     }
                     char_stack[char_stack_size++] = suffix_chars[current_code];
-                    prev_code = current_code;
                     current_code = prefix_codes[current_code];
                 }
 
@@ -261,8 +256,6 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_desc *image_des
                 if(avail < GIF_LZW_MAX_CODES) {
                     prefix_codes[avail] = old_code;
                     suffix_chars[avail] = first_char;
-
-                    FIG_ASSERT(old_code < avail);
                     ++avail;
                     if((avail & code_mask) == 0 && avail < GIF_LZW_MAX_CODES) {
                         ++code_size;
@@ -271,13 +264,13 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_desc *image_des
                 }
 
                 old_code = code;
-                FIG_ASSERT(old_code < avail);
             } else {
                 return 0;
             }
 
             while(char_stack_size > 0) {
                 fig_uint8_t top;
+
                 if(y >= image_desc->height) {
                     return 0;
                 }
@@ -298,7 +291,6 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_desc *image_des
             }
         }
     }
-
 }
 
 fig_image *fig_load_gif(fig_source *src) {
@@ -331,18 +323,21 @@ fig_image *fig_load_gif(fig_source *src) {
     done = 0;
     while(!done) {
         fig_uint8_t block_type;
+
         if(!fig_source_read_u8(src, &block_type)) {
             goto failure;
         }
         switch(block_type) {
             case GIF_BLOCK_EXTENSION: {
                 fig_uint8_t extension_type;
+
                 if(!fig_source_read_u8(src, &extension_type)) {
                     goto failure;
                 }
                 switch(extension_type) {
                     case GIF_EXT_GRAPHIC_CONTROL: {
                         fig_uint8_t length;
+
                         if(!fig_source_read_u8(src, &length)) {
                             goto failure;
                         }
@@ -376,16 +371,13 @@ fig_image *fig_load_gif(fig_source *src) {
                 || !fig_frame_resize_canvas(frame, image_desc.width, image_desc.height)) {
                     goto failure;
                 }
-
                 if(image_desc.local_colors > 0
                 && !gif_read_palette(src, image_desc.local_colors, fig_frame_get_palette(frame))) {
                     goto failure;
                 }
-
                 if(!gif_read_image_data(src, &image_desc, fig_frame_get_pixel_data(frame))) {
                     goto failure;
                 }
-
                 break;
             }
             case GIF_BLOCK_TERMINATOR: {
