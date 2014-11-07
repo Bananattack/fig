@@ -34,11 +34,11 @@ typedef enum fig_seek_origin_t {
 typedef struct fig_palette fig_palette;
 
 /* Return a new palette, or NULL on failure. */
-fig_palette *fig_create_palette();
+fig_palette *fig_create_palette(void);
 /* Get the size of the palette. */
 size_t fig_palette_get_size(fig_palette *self);
 /* Get a raw pointer to contiguous BRGA color data, possibly NULL. */
-fig_uint32_t *fig_palette_get_data(fig_palette *self);
+fig_uint32_t *fig_palette_get_color_data(fig_palette *self);
 /* Get a BGRA color from the palette at the given index. 0 <= index < size. */
 fig_uint32_t fig_palette_get(fig_palette *self, size_t index);
 /* Set a BGRA color in the palette at the given index. 0 <= index < size. */
@@ -54,11 +54,19 @@ void fig_palette_free(fig_palette *self);
 typedef struct fig_frame fig_frame;
 
 /* Return a new frame, or NULL on failure. */
-fig_frame *fig_create_frame();
+fig_frame *fig_create_frame(void);
 /* Get the palette associated with the image. */
 fig_palette *fig_frame_get_palette(fig_frame *self);
+/* Get the palette associated with the image. */
+fig_uint8_t *fig_frame_get_pixel_data(fig_frame *self);
+/* Get the width of the image. */
+size_t fig_frame_get_width(fig_frame *self);
+/* Get the height of the image. */
+size_t fig_frame_get_height(fig_frame *self);
+/* Resize the canvas area */
+fig_bool_t fig_frame_resize_canvas(fig_frame *self, size_t width, size_t height);
 /* Free a frame created with fig_create_frame. */
-void fig_frame_free();
+void fig_frame_free(fig_frame *self);
 
 
 
@@ -66,11 +74,11 @@ void fig_frame_free();
 typedef struct fig_animation fig_animation;
 
 /* Return a new animation, or NULL on failure. */
-fig_animation *fig_create_animation();
+fig_animation *fig_create_animation(void);
 /* Get size of the animation. */
 size_t fig_animation_get_size(fig_animation *self);
 /* Get a raw pointer to contiguous frame data, possibly NULL. */
-fig_frame **fig_animation_get_data(fig_animation *self);
+fig_frame **fig_animation_get_frame_data(fig_animation *self);
 /* Get a frame from the animation at the given index. 0 <= index < size */
 fig_frame *fig_animation_get(fig_animation *self, size_t index);
 /* Exchange order of two frames at the given indices. 0 <= index < size */
@@ -90,7 +98,7 @@ void fig_animation_free(fig_animation *self);
 typedef struct fig_image fig_image;
 
 /* Return a new image, or NULL on failure. */
-fig_image *fig_create_image();
+fig_image *fig_create_image(void);
 /* Get the palette associated with the image. */
 fig_palette *fig_image_get_palette(fig_image *self);
 /* Get the animation associated with the image. */
@@ -146,6 +154,7 @@ fig_bool_t fig_source_read_le_u32(fig_source *self, fig_uint32_t *dest);
 /* Attempt to seek to a position within the stream, and return whether
 this was successful. */
 fig_bool_t fig_source_seek(fig_source *self, fig_offset_t offset, fig_seek_origin_t whence);
+/* Tell the current position in the source. */
 fig_offset_t fig_source_tell(fig_source *self);
 /* Free a source created with one of the fig_create_source functions. */
 void fig_source_free(fig_source *self);

@@ -8,7 +8,7 @@ typedef struct fig_image {
     fig_animation *animation;
 } fig_image;
 
-fig_image *fig_create_image() {
+fig_image *fig_create_image(void) {
     fig_image *self = (fig_image *) malloc(sizeof(fig_image));
     if(self != NULL) {
         self->width = 0;

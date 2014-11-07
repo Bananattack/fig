@@ -11,7 +11,10 @@ int main(int argc, char **argv) {
     fig_palette *palette;
     fig_animation *anim;
 
-    f = fopen("../examples/FullColourGIF.gif", "rb");
+    (void) argc;
+    (void) argv;
+
+    f = fopen("../examples/FullColourGif.gif", "rb");
     if(f == NULL) {
         return 1;
     }
@@ -33,16 +36,16 @@ int main(int argc, char **argv) {
     printf("Palette:\n");
     
     palette = fig_image_get_palette(image);
-    for(i = 0, size = fig_palette_get_size(palette); i < size; i++) {
+    for(i = 0, size = fig_palette_get_size(palette); i < size; ++i) {
         printf("    %02X: %08X\n", i, fig_palette_get(palette, i));
     }
 
     anim = fig_image_get_animation(image);
     printf("Animation:\n", i);
-    for(i = 0, size = fig_animation_get_size(anim); i < size; i++) {
+    for(i = 0, size = fig_animation_get_size(anim); i < size; ++i) {
         printf("Frame #%d:\n", i);
         palette = fig_frame_get_palette(fig_animation_get(anim, i));
-        for(j = 0, size2 = fig_palette_get_size(palette); j < size2; j++) {
+        for(j = 0, size2 = fig_palette_get_size(palette); j < size2; ++j) {
             printf("    %02X: %08X\n", j, fig_palette_get(palette, j));
         }
     }

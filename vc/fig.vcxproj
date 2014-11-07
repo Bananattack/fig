@@ -63,6 +63,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <TreatSpecificWarningsAsErrors>4242;4254;4255;4365;4388;4431</TreatSpecificWarningsAsErrors>
+      <DisableLanguageExtensions>true</DisableLanguageExtensions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

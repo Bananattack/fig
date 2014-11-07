@@ -8,7 +8,7 @@ typedef struct fig_animation {
     fig_frame **data;
 } fig_animation;
 
-fig_animation *fig_create_animation() {
+fig_animation *fig_create_animation(void) {
     fig_animation *self = (fig_animation *) malloc(sizeof(fig_animation));
     if(self != NULL) {
         self->loop_count = 0;
@@ -23,7 +23,7 @@ size_t fig_animation_get_size(fig_animation *self) {
     return self->size;
 }
 
-fig_frame **fig_animation_get_data(fig_animation *self) {
+fig_frame **fig_animation_get_frame_data(fig_animation *self) {
     return self->data;
 }
 
@@ -94,10 +94,10 @@ void fig_animation_remove(fig_animation *self, size_t index) {
 
     data = self->data;
     fig_frame_free(data[index]);
-    for(j = index, end = self->size - 1; j < end; j++) {
+    for(j = index, end = self->size - 1; j < end; ++j) {
         data[j] = data[j + 1];
     }
-    self->size--;
+    --self->size;
 }
 
 void fig_animation_free(fig_animation *self) {
@@ -106,7 +106,7 @@ void fig_animation_free(fig_animation *self) {
             fig_frame **data;
             size_t i;
             data = self->data;
-            for(i = 0; i < self->size; i++) {
+            for(i = 0; i < self->size; ++i) {
                 fig_frame_free(data[i]);
             }
             free(self->data);
