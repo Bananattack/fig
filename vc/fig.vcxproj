@@ -12,7 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\fig.h" />
-    <ClInclude Include="..\include\fig_gif.h" />
+    <ClInclude Include="..\include\fig_config.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\fig.c" />

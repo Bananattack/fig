@@ -18,7 +18,7 @@
     <ClInclude Include="..\include\fig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\fig_gif.h">
+    <ClInclude Include="..\include\fig_config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

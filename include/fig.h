@@ -1,6 +1,8 @@
 #ifndef FIG_H
 #define FIG_H
 
+#include <fig_config.h>
+
 #include <stdio.h>
 
 #ifndef FIG_ASSERT
@@ -181,5 +183,8 @@ fig_offset_t fig_source_tell(fig_source *self);
 void fig_source_free(fig_source *self);
 
 
+#ifdef FIG_LOAD_GIF
+fig_image *fig_load_gif(fig_source *src);
+#endif
 
 #endif

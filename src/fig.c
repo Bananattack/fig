@@ -2,11 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fig.h>
-#include <fig_gif.h>
-
-const char *filename = "../examples/FullColourGIF.gif";
 
 int main(int argc, char **argv) {
+    const char *filename = "../examples/FullColourGIF.gif";
     char buffer[256];
     size_t i, j;
     FILE *f;

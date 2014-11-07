@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fig.h>
-#include <fig_gif.h>
+
+#ifdef FIG_LOAD_GIF
 
 enum {
     /* Header definitions */
@@ -396,3 +397,4 @@ failure:
     fig_image_free(image);
     return NULL;
 }
+#endif
