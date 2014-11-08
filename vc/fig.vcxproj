@@ -15,7 +15,6 @@
     <ClInclude Include="..\include\fig_config.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\fig_animation.c" />
     <ClCompile Include="..\src\fig_frame.c" />
     <ClCompile Include="..\src\fig_palette.c" />
     <ClCompile Include="..\src\fig_source.c" />

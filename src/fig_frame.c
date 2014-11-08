@@ -113,7 +113,7 @@ void fig_frame_set_disposal(fig_frame *self, fig_disposal_t value) {
     self->disposal = value;
 }
 
- void fig_frame_apply_index(fig_frame *self, fig_image *image) {
+ void fig_frame_calculate_colors(fig_frame *self, fig_image *image) {
      fig_palette *palette;
      size_t palette_size;
      fig_uint32_t *palette_data;

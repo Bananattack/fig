@@ -28,18 +28,17 @@ int main(int argc, char **argv) {
     fclose(f);
 
     {
-        fig_animation *anim;
-        size_t anim_size;
+        size_t frame_count;
+        fig_frame **frame_data;
+        frame_count = fig_image_get_frame_count(image);
+        frame_data = fig_image_get_frame_data(image);
 
-        anim = fig_image_get_animation(image);
-        anim_size = fig_animation_get_size(anim);
-
-        for(i = 0; i < anim_size; ++i) {
+        for(i = 0; i < frame_count; ++i) {
             fig_frame *frame;
             size_t width, height, frame_size;
             fig_uint32_t *data;
 
-            frame = fig_animation_get(anim, i);
+            frame = frame_data[i];
             width = fig_frame_get_width(frame);
             height = fig_frame_get_height(frame);
             frame_size = width * height;

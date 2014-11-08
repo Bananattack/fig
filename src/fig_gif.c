@@ -396,14 +396,12 @@ fig_image *fig_load_gif(fig_source *src) {
                 break;
             }
             case GIF_BLOCK_IMAGE: {
-                fig_animation *anim;
                 fig_frame *frame;
                 gif_image_descriptor image_desc;
                 
                 memset(&image_desc, 0, sizeof(image_desc));
                 gif_read_image_descriptor(src, &image_desc);
-                anim = fig_image_get_animation(image);
-                frame = fig_animation_add(anim);
+                frame = fig_image_add_frame(image);
 
                 if(frame == NULL
                 || !fig_frame_resize_canvas(frame, image_desc.width, image_desc.height)) {
@@ -421,7 +419,7 @@ fig_image *fig_load_gif(fig_source *src) {
                 fig_frame_set_y(frame, image_desc.y);
                 fig_frame_set_delay(frame, gfx_ctrl.delay);
                 fig_frame_set_disposal(frame, gfx_ctrl.disposal);
-                fig_frame_apply_index(frame, image);
+                fig_frame_calculate_colors(frame, image);
 
                 break;
             }
