@@ -42,8 +42,11 @@ typedef struct fig_source_callbacks fig_source_callbacks;
 typedef struct fig_source fig_source;
 
 typedef enum fig_seek_origin_t {
+    /* Seek forward from beginning of file. */
     FIG_SEEK_SET = SEEK_SET,
+    /* Seek relative to current offset in file. */
     FIG_SEEK_CUR = SEEK_CUR,
+    /* Seek backward from end of file. */
     FIG_SEEK_END = SEEK_END,
 } fig_seek_origin_t;
 
@@ -69,23 +72,56 @@ void fig_palette_free(fig_palette *self);
 
 
 
+/* An enumeration of possible frame disposal modes, performed
+after this frame is finished, but before the next one is drawn. */
+typedef enum fig_disposal_t {
+    /* Replace this frame. */
+    FIG_DISPOSAL_UNSPECIFIED,
+    /* Draw next frame over this. */
+    FIG_DISPOSAL_NONE,
+    /* Clear the area used by the frame to background. */
+    FIG_DISPOSAL_BACKGROUND,
+    /* Clear to previous frame. */
+    FIG_DISPOSAL_PREVIOUS,
+    /* Number of disposal types. */
+    FIG_DISPOSAL_COUNT
+} fig_disposal_t;
+
+
+
 /* An individual frame in an animation. */
 typedef struct fig_frame fig_frame;
 
 /* Return a new frame, or NULL on failure. */
 fig_frame *fig_create_frame(void);
-/* Get the palette associated with the image. */
+/* Get the palette associated with the frame. */
 fig_palette *fig_frame_get_palette(fig_frame *self);
-/* Get a raw pointer to image index data. */
+/* Get a raw pointer to frame index data. */
 fig_uint8_t *fig_frame_get_index_data(fig_frame *self);
-/* Get a raw pointer to image BGRA color data. */
+/* Get a raw pointer to frame BGRA color data. */
 fig_uint32_t *fig_frame_get_color_data(fig_frame *self);
-/* Get the width of the image. */
+/* Get the x position of the frame. */
+size_t fig_frame_get_x(fig_frame *self);
+/* Get the y position of the frame. */
+size_t fig_frame_get_y(fig_frame *self);
+/* Get the width of the frame. */
 size_t fig_frame_get_width(fig_frame *self);
-/* Get the height of the image. */
+/* Get the height of the frame. */
 size_t fig_frame_get_height(fig_frame *self);
+/* Get the delay to apply on this frame. */
+size_t fig_frame_get_delay(fig_frame *self);
+/* Get the disposal to apply between this frame and the next. */
+fig_disposal_t fig_frame_get_disposal(fig_frame *self);
+/* Set the x position of the frame. */
+void fig_frame_set_x(fig_frame *self, size_t value);
+/* Set the y position of the frame. */
+void fig_frame_set_y(fig_frame *self, size_t value);
 /* Resize the canvas area */
 fig_bool_t fig_frame_resize_canvas(fig_frame *self, size_t width, size_t height);
+/* Set the delay to apply on this frame. */
+void fig_frame_set_delay(fig_frame *self, size_t value);
+/* Set the disposal to apply between this frame and the next. */
+void fig_frame_set_disposal(fig_frame *self, fig_disposal_t value);
 /* Update the color data by converting the index data into BGRA colors. */
 void fig_frame_apply_index(fig_frame *self, fig_image *image);
 /* Free a frame created with fig_create_frame. */

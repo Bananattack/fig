@@ -6,7 +6,8 @@ typedef struct fig_frame {
     size_t y;
     size_t width;
     size_t height;
-    fig_uint32_t delay;
+    size_t delay;
+    fig_disposal_t disposal;
     fig_palette *palette;
     fig_uint8_t *index_data;
     fig_uint32_t *color_data;
@@ -20,6 +21,7 @@ fig_frame *fig_create_frame(void) {
         self->width = 0;
         self->height = 0;
         self->delay = 0;
+        self->disposal = FIG_DISPOSAL_UNSPECIFIED;
         self->palette = fig_create_palette();
         self->index_data = NULL;
         self->color_data = NULL;
@@ -43,12 +45,36 @@ fig_uint32_t *fig_frame_get_color_data(fig_frame *self) {
     return self->color_data;
 }
 
+size_t fig_frame_get_x(fig_frame *self) {
+    return self->x;
+}
+
+size_t fig_frame_get_y(fig_frame *self) {
+    return self->y;
+}
+
 size_t fig_frame_get_width(fig_frame *self) {
     return self->width;
 }
 
 size_t fig_frame_get_height(fig_frame *self) {
     return self->height;
+}
+
+size_t fig_frame_get_delay(fig_frame *self) {
+    return self->delay;
+}
+
+fig_disposal_t fig_frame_get_disposal(fig_frame *self) {
+    return self->disposal;
+}
+
+void fig_frame_set_x(fig_frame *self, size_t value) {
+    self->x = value;
+}
+
+void fig_frame_set_y(fig_frame *self, size_t value) {
+    self->y = value;
 }
 
 fig_bool_t fig_frame_resize_canvas(fig_frame *self, size_t width, size_t height) {
@@ -77,6 +103,14 @@ fig_bool_t fig_frame_resize_canvas(fig_frame *self, size_t width, size_t height)
             return 0;
         }
     }
+}
+
+void fig_frame_set_delay(fig_frame *self, size_t value) {
+    self->delay = value;
+}
+
+void fig_frame_set_disposal(fig_frame *self, fig_disposal_t value) {
+    self->disposal = value;
 }
 
  void fig_frame_apply_index(fig_frame *self, fig_image *image) {

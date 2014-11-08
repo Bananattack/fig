@@ -8,25 +8,30 @@ enum {
     /* Header definitions */
     GIF_HEADER_LENGTH = 6,
 
+    /* Extension types */
+    GIF_EXT_GRAPHICS_CONTROL = 0x21,
+    GIF_EXT_PLAIN_TEXT = 0x01,
+    GIF_EXT_COMMENT = 0xFE,
+    GIF_EXT_APPLICATION = 0xFF,
+
     /* Logical screen descriptor packed fields */
-    GIF_SCREEN_PF_GLOBAL_COLOR = 0x80,
-    GIF_SCREEN_PF_DEPTH_MASK = 0x07,
+    GIF_SCREEN_DESC_GLOBAL_COLOR = 0x80,
+    GIF_SCREEN_DESC_DEPTH_MASK = 0x07,
 
     /* Image descriptor packed fields */
-    GIF_IMAGE_DESC_PF_LOCAL_COLOR = 0x80,
-    GIF_IMAGE_DESC_PF_INTERLACE = 0x40,
-    GIF_IMAGE_DESC_PF_DEPTH_MASK = 0x07,
+    GIF_IMAGE_DESC_LOCAL_COLOR = 0x80,
+    GIF_IMAGE_DESC_INTERLACE = 0x40,
+    GIF_IMAGE_DESC_DEPTH_MASK = 0x07,
+
+    /* Graphics control packed fields */
+    GIF_GRAPHICS_CTRL_TRANSPARENCY = 0x01,
+    GIF_GRAPHICS_CTRL_DISPOSAL_MASK = 0x1C,
+    GIF_GRAPHICS_CTRL_DISPOSAL_SHIFT = 2,
 
     /* Block types */
     GIF_BLOCK_EXTENSION = 0x21,
     GIF_BLOCK_IMAGE = 0x2C,
     GIF_BLOCK_TERMINATOR = 0x3B,
-
-    /* Extension types */
-    GIF_EXT_GRAPHIC_CONTROL = 0x21,
-    GIF_EXT_PLAIN_TEXT = 0x01,
-    GIF_EXT_COMMENT = 0xFE,
-    GIF_EXT_APPLICATION = 0xFF,
 
     /* LZW definitions */
     GIF_LZW_MAX_BITS = 12,
@@ -35,14 +40,21 @@ enum {
     GIF_LZW_NULL_CODE = 0xCACA
 };
 
+typedef enum {
+    GIF_DISPOSAL_UNSPECIFIED,
+    GIF_DISPOSAL_NONE,
+    GIF_DISPOSAL_BACKGROUND,
+    GIF_DISPOSAL_PREVIOUS,
+    GIF_DISPOSAL_COUNT
+} gif_disposal_t;
+
 typedef struct {
-    char version[3];
     fig_uint16_t width;
     fig_uint16_t height;
     size_t global_colors;
     fig_uint8_t bg_index;
     fig_uint8_t aspect;
-} gif_format;
+} gif_screen_descriptor;
 
 typedef struct {
     fig_uint16_t x;
@@ -51,9 +63,16 @@ typedef struct {
     fig_uint16_t height;
     size_t local_colors;
     fig_bool_t interlace;
-} gif_image_desc;
+} gif_image_descriptor;
 
-static fig_bool_t gif_read_header(fig_source *src, gif_format *gif) {
+typedef struct {
+    fig_uint16_t delay;
+    fig_bool_t transparent;
+    fig_uint8_t transparency_index;
+    gif_disposal_t disposal;
+} gif_graphics_control;
+
+static fig_bool_t gif_read_header(fig_source *src, fig_uint8_t *version) {
     char buffer[GIF_HEADER_LENGTH];
 
     if(fig_source_read(src, buffer, GIF_HEADER_LENGTH, 1) != 1) {
@@ -63,22 +82,22 @@ static fig_bool_t gif_read_header(fig_source *src, gif_format *gif) {
     && memcmp(buffer, "GIF89a", GIF_HEADER_LENGTH) != 0) {
         return 0;
     }
-    memcpy(gif->version, buffer + 3, 3);
+    *version = (buffer[3] - '0') * 10 + (buffer[4] - '0');
     return 1;
 }
 
-static fig_bool_t gif_read_screen_desc(fig_source *src, gif_format *gif) {
+static fig_bool_t gif_read_screen_descriptor(fig_source *src, gif_screen_descriptor *screen_desc) {
     fig_uint8_t packed_fields;
 
-    if(fig_source_read_le_u16(src, &gif->width)
-    && fig_source_read_le_u16(src, &gif->height)
+    if(fig_source_read_le_u16(src, &screen_desc->width)
+    && fig_source_read_le_u16(src, &screen_desc->height)
     && fig_source_read_u8(src, &packed_fields)
-    && fig_source_read_u8(src, &gif->bg_index)
-    && fig_source_read_u8(src, &gif->aspect)) {
-        if((packed_fields & GIF_SCREEN_PF_GLOBAL_COLOR) != 0) {
-            gif->global_colors = (1 << ((packed_fields & GIF_SCREEN_PF_DEPTH_MASK) + 1));
+    && fig_source_read_u8(src, &screen_desc->bg_index)
+    && fig_source_read_u8(src, &screen_desc->aspect)) {
+        if((packed_fields & GIF_SCREEN_DESC_GLOBAL_COLOR) != 0) {
+            screen_desc->global_colors = (1 << ((packed_fields & GIF_SCREEN_DESC_DEPTH_MASK) + 1));
         } else {
-            gif->global_colors = 0;
+            screen_desc->global_colors = 0;
         }
         return 1;
     } else {
@@ -86,7 +105,7 @@ static fig_bool_t gif_read_screen_desc(fig_source *src, gif_format *gif) {
     }
 }
 
-static fig_bool_t gif_read_image_desc(fig_source *src, gif_image_desc *image_desc) {
+static fig_bool_t gif_read_image_descriptor(fig_source *src, gif_image_descriptor *image_desc) {
     fig_uint8_t packed_fields;
 
     if(fig_source_read_le_u16(src, &image_desc->x)
@@ -94,12 +113,12 @@ static fig_bool_t gif_read_image_desc(fig_source *src, gif_image_desc *image_des
     && fig_source_read_le_u16(src, &image_desc->width)
     && fig_source_read_le_u16(src, &image_desc->height)
     && fig_source_read_u8(src, &packed_fields)) {
-        if((packed_fields & GIF_IMAGE_DESC_PF_LOCAL_COLOR) != 0) {
-            image_desc->local_colors = 1 << ((packed_fields & GIF_IMAGE_DESC_PF_DEPTH_MASK) + 1);
+        if((packed_fields & GIF_IMAGE_DESC_LOCAL_COLOR) != 0) {
+            image_desc->local_colors = 1 << ((packed_fields & GIF_IMAGE_DESC_DEPTH_MASK) + 1);
         } else {
             image_desc->local_colors = 0;
         }
-        image_desc->interlace = (packed_fields & GIF_IMAGE_DESC_PF_INTERLACE) != 0;
+        image_desc->interlace = (packed_fields & GIF_IMAGE_DESC_INTERLACE) != 0;
         return 1;
     } else {
         return 0;
@@ -118,6 +137,28 @@ static fig_bool_t gif_skip_sub_blocks(fig_source *src) {
     return 1;
 }
 
+static fig_bool_t gif_read_graphics_control(fig_source *src, gif_graphics_control *gfx_ctrl) {
+    fig_uint8_t length;
+    fig_uint8_t packed_fields;
+
+    if(fig_source_read_u8(src, &length)
+    && length == 4
+    && fig_source_read_u8(src, &packed_fields)
+    && fig_source_read_le_u16(src, &gfx_ctrl->delay)
+    && fig_source_read_u8(src, &gfx_ctrl->transparency_index)) {
+        gfx_ctrl->transparent = packed_fields & GIF_GRAPHICS_CTRL_TRANSPARENCY;
+        gfx_ctrl->disposal = (gif_disposal_t) ((packed_fields & GIF_GRAPHICS_CTRL_DISPOSAL_MASK) >> GIF_GRAPHICS_CTRL_DISPOSAL_SHIFT);
+        if(gfx_ctrl->disposal >= GIF_DISPOSAL_COUNT) {
+            gfx_ctrl->disposal = GIF_DISPOSAL_UNSPECIFIED;
+        }
+
+        if(gif_skip_sub_blocks(src)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 static fig_bool_t gif_read_palette(fig_source *src, size_t size, fig_palette *palette) {
     size_t i, j;
     fig_uint8_t buffer[256 * 3];
@@ -133,7 +174,7 @@ static fig_bool_t gif_read_palette(fig_source *src, size_t size, fig_palette *pa
     return 1;
 }
 
-static fig_bool_t gif_read_image_data(fig_source *src, gif_image_desc *image_desc, fig_uint8_t *pixel_data) {
+static fig_bool_t gif_read_image_data(fig_source *src, gif_image_descriptor *image_desc, fig_uint8_t *pixel_data) {
     fig_uint8_t min_code_size;
     fig_uint16_t clear;
     fig_uint16_t eoi;
@@ -295,56 +336,50 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_desc *image_des
 }
 
 fig_image *fig_load_gif(fig_source *src) {
-    gif_format gif;
+    fig_uint8_t version;
+    gif_screen_descriptor screen_desc;
+    gif_graphics_control gfx_ctrl;
     fig_image *image;
-    fig_bool_t done;
     
     if(src == NULL) {
         return NULL;
     }
 
-    memset(&gif, 0, sizeof(gif));
+    memset(&screen_desc, 0, sizeof(screen_desc));
+    memset(&gfx_ctrl, 0, sizeof(gfx_ctrl));
 
-    if(!gif_read_header(src, &gif)
-    || !gif_read_screen_desc(src, &gif)) {
+    if(!gif_read_header(src, &version)
+    || !gif_read_screen_descriptor(src, &screen_desc)) {
         return NULL;
     }
 
     image = fig_create_image();
     if(image == NULL
-    || !fig_image_resize_canvas(image, gif.width, gif.height)) {
-        goto failure;
+    || !fig_image_resize_canvas(image, screen_desc.width, screen_desc.height)) {
+        return fig_image_free(image), NULL;
+    }
+    if(screen_desc.global_colors > 0
+    && !gif_read_palette(src, screen_desc.global_colors, fig_image_get_palette(image))) {
+        return fig_image_free(image), NULL;
     }
 
-    if(gif.global_colors > 0
-    && !gif_read_palette(src, gif.global_colors, fig_image_get_palette(image))) {
-        goto failure;
-    }
-
-    done = 0;
-    while(!done) {
+    for(;;) {
         fig_uint8_t block_type;
 
         if(!fig_source_read_u8(src, &block_type)) {
-            goto failure;
+            return fig_image_free(image), NULL;
         }
         switch(block_type) {
             case GIF_BLOCK_EXTENSION: {
                 fig_uint8_t extension_type;
 
                 if(!fig_source_read_u8(src, &extension_type)) {
-                    goto failure;
+                    return fig_image_free(image), NULL;
                 }
                 switch(extension_type) {
-                    case GIF_EXT_GRAPHIC_CONTROL: {
-                        fig_uint8_t length;
-
-                        if(!fig_source_read_u8(src, &length)) {
-                            goto failure;
-                        }
-                        fig_source_seek(src, length, FIG_SEEK_CUR);
-                        if(!gif_skip_sub_blocks(src)) {
-                            goto failure;
+                    case GIF_EXT_GRAPHICS_CONTROL: {
+                        if(!gif_read_graphics_control(src, &gfx_ctrl)) {
+                            return fig_image_free(image), NULL;
                         }
                         break;
                     }
@@ -353,7 +388,7 @@ fig_image *fig_load_gif(fig_source *src) {
                     case GIF_EXT_APPLICATION:*/
                     default: {
                         if(!gif_skip_sub_blocks(src)) {
-                            goto failure;
+                            return fig_image_free(image), NULL;
                         }
                         break;
                     }
@@ -363,39 +398,39 @@ fig_image *fig_load_gif(fig_source *src) {
             case GIF_BLOCK_IMAGE: {
                 fig_animation *anim;
                 fig_frame *frame;
-                gif_image_desc image_desc;
+                gif_image_descriptor image_desc;
                 
-                gif_read_image_desc(src, &image_desc);
+                memset(&image_desc, 0, sizeof(image_desc));
+                gif_read_image_descriptor(src, &image_desc);
                 anim = fig_image_get_animation(image);
                 frame = fig_animation_add(anim);
 
                 if(frame == NULL
                 || !fig_frame_resize_canvas(frame, image_desc.width, image_desc.height)) {
-                    goto failure;
+                    return fig_image_free(image), NULL;
                 }
                 if(image_desc.local_colors > 0
                 && !gif_read_palette(src, image_desc.local_colors, fig_frame_get_palette(frame))) {
-                    goto failure;
+                    return fig_image_free(image), NULL;
                 }
                 if(!gif_read_image_data(src, &image_desc, fig_frame_get_index_data(frame))) {
-                    goto failure;
+                    return fig_image_free(image), NULL;
                 }
 
+                fig_frame_set_x(frame, image_desc.x);
+                fig_frame_set_y(frame, image_desc.y);
+                fig_frame_set_delay(frame, gfx_ctrl.delay);
+                fig_frame_set_disposal(frame, gfx_ctrl.disposal);
                 fig_frame_apply_index(frame, image);
+
                 break;
             }
             case GIF_BLOCK_TERMINATOR: {
-                done = 1;
-                break;
+                return image;
             }
             default:
-                goto failure;
+                return fig_image_free(image), NULL;
         }
     }
-
-    return image;
-failure:
-    fig_image_free(image);
-    return NULL;
 }
 #endif
