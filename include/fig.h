@@ -57,9 +57,9 @@ typedef struct fig_palette fig_palette;
 /* Return a new palette, or NULL on failure. */
 fig_palette *fig_create_palette(void);
 /* Get the size of the palette. */
-size_t fig_palette_get_size(fig_palette *self);
+size_t fig_palette_count_colors(fig_palette *self);
 /* Get a raw pointer to contiguous BRGA color data, possibly NULL. */
-fig_uint32_t *fig_palette_get_color_data(fig_palette *self);
+fig_uint32_t *fig_palette_get_colors(fig_palette *self);
 /* Get a BGRA color from the palette at the given index. 0 <= index < size. */
 fig_uint32_t fig_palette_get(fig_palette *self, size_t index);
 /* Set a BGRA color in the palette at the given index. 0 <= index < size. */
@@ -142,9 +142,9 @@ size_t fig_image_get_height(fig_image *self);
 /* Resize the canvas area of the image. */
 fig_bool_t fig_image_resize_canvas(fig_image *self, size_t width, size_t height);
 /* Get frame count of the image's animation. */
-size_t fig_image_get_frame_count(fig_image *self);
+size_t fig_image_count_frames(fig_image *self);
 /* Get a raw pointer to contiguous frame data, possibly NULL. */
-fig_frame **fig_image_get_frame_data(fig_image *self);
+fig_frame **fig_image_get_frames(fig_image *self);
 /* Get loop count of the image's animation. 0 = infinite looping */
 size_t fig_image_get_loop_count(fig_image *self);
 /* Set loop count of the image's animation. 0 = infinite looping */

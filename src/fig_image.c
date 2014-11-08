@@ -48,11 +48,11 @@ fig_bool_t fig_image_resize_canvas(fig_image *self, size_t width, size_t height)
     return 1;
 }
 
-size_t fig_image_get_frame_count(fig_image *self) {
+size_t fig_image_count_frames(fig_image *self) {
     return self->frame_count;
 }
 
-fig_frame **fig_image_get_frame_data(fig_image *self) {
+fig_frame **fig_image_get_frames(fig_image *self) {
     return self->frame_data;
 }
 

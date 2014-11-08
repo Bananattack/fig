@@ -15,11 +15,11 @@ fig_palette *fig_create_palette(void) {
     return self;
 }
 
-size_t fig_palette_get_size(fig_palette *self) {
+size_t fig_palette_count_colors(fig_palette *self) {
     return self->size;
 }
 
-fig_uint32_t *fig_palette_get_color_data(fig_palette *self) {
+fig_uint32_t *fig_palette_get_colors(fig_palette *self) {
     return self->data;
 }
 

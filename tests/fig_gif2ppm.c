@@ -29,16 +29,16 @@ int main(int argc, char **argv) {
 
     {
         size_t frame_count;
-        fig_frame **frame_data;
-        frame_count = fig_image_get_frame_count(image);
-        frame_data = fig_image_get_frame_data(image);
+        fig_frame **frames;
+        frame_count = fig_image_count_frames(image);
+        frames = fig_image_get_frames(image);
 
         for(i = 0; i < frame_count; ++i) {
             fig_frame *frame;
             size_t width, height, frame_size;
             fig_uint32_t *data;
 
-            frame = frame_data[i];
+            frame = frames[i];
             width = fig_frame_get_width(frame);
             height = fig_frame_get_height(frame);
             frame_size = width * height;

@@ -115,8 +115,8 @@ void fig_frame_set_disposal(fig_frame *self, fig_disposal_t value) {
 
  void fig_frame_calculate_colors(fig_frame *self, fig_image *image) {
      fig_palette *palette;
-     size_t palette_size;
-     fig_uint32_t *palette_data;
+     size_t color_count;
+     fig_uint32_t *colors;
      size_t image_size;
      fig_uint8_t *index_data;
      fig_uint32_t *color_data;
@@ -126,24 +126,24 @@ void fig_frame_set_disposal(fig_frame *self, fig_disposal_t value) {
          return;
      }
 
-     if(fig_palette_get_size(self->palette) > 0) {
+     if(fig_palette_count_colors(self->palette) > 0) {
         palette = self->palette;
      } else {
         palette = fig_image_get_palette(image);
      }
 
-     palette_size = fig_palette_get_size(palette);
-     palette_data = fig_palette_get_color_data(palette);
+     color_count = fig_palette_count_colors(palette);
+     colors = fig_palette_get_colors(palette);
      image_size = self->width * self->height;
      index_data = self->index_data;
      color_data = self->color_data;
 
      for(i = 0; i < image_size; ++i) {
          fig_uint8_t index = index_data[i];
-         if(index >= palette_size) {
+         if(index >= color_count) {
              index = 0;
          }
-         color_data[i] = palette_data[index];
+         color_data[i] = colors[index];
      }
  }
 
