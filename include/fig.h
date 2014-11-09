@@ -104,13 +104,17 @@ size_t fig_frame_get_x(fig_frame *self);
 /* Get the y position of the frame. */
 size_t fig_frame_get_y(fig_frame *self);
 /* Get the width of the frame. */
-size_t fig_frame_get_width(fig_frame *self);
+size_t fig_frame_get_canvas_width(fig_frame *self);
 /* Get the height of the frame. */
-size_t fig_frame_get_height(fig_frame *self);
+size_t fig_frame_get_canvas_height(fig_frame *self);
 /* Get the delay to apply on this frame. */
 size_t fig_frame_get_delay(fig_frame *self);
 /* Get the disposal to apply between this frame and the next. */
 fig_disposal_t fig_frame_get_disposal(fig_frame *self);
+/* Get whether the frame has transparent parts. */
+fig_bool_t fig_frame_get_transparent(fig_frame *self);
+/* Get the color that should be transparent during rendering. */
+size_t fig_frame_get_transparency_index(fig_frame *self);
 /* Set the x position of the frame. */
 void fig_frame_set_x(fig_frame *self, size_t value);
 /* Set the y position of the frame. */
@@ -121,8 +125,22 @@ fig_bool_t fig_frame_resize_canvas(fig_frame *self, size_t width, size_t height)
 void fig_frame_set_delay(fig_frame *self, size_t value);
 /* Set the disposal to apply between this frame and the next. */
 void fig_frame_set_disposal(fig_frame *self, fig_disposal_t value);
+/* Set whether the frame has transparent parts. */
+void fig_frame_set_transparent(fig_frame *self, fig_bool_t value);
+/* Set the color that should be transparent during rendering. */
+void fig_frame_set_transparency_index(fig_frame *self, size_t value);
 /* Update the color data by converting the index data into BGRA colors. */
 void fig_frame_calculate_colors(fig_frame *self, fig_image *image);
+/* Get the width of the frame's render. */
+size_t fig_frame_get_render_width(fig_frame *self);
+/* Get the height of the frame's render. */
+size_t fig_frame_get_render_height(fig_frame *self);
+/* Get a raw pointer to rendered BGRA color data. */
+fig_uint32_t *fig_frame_get_render_data(fig_frame *self);
+/* Get the palette to apply for rendering. */
+fig_palette *fig_frame_get_render_palette(fig_frame *self, fig_image *image);
+/* Resize the overall render of the frame */
+fig_bool_t fig_frame_resize_render(fig_frame *self, size_t width, size_t height);
 /* Free a frame created with fig_create_frame. */
 void fig_frame_free(fig_frame *self);
 
@@ -148,7 +166,11 @@ fig_frame **fig_image_get_frames(fig_image *self);
 /* Get loop count of the image's animation. 0 = infinite looping */
 size_t fig_image_get_loop_count(fig_image *self);
 /* Set loop count of the image's animation. 0 = infinite looping */
-void fig_image_set_loop_count(fig_image *self, size_t loop_count);
+void fig_image_set_loop_count(fig_image *self, size_t value);
+/* Get background index of the image. */
+size_t fig_image_get_background_index(fig_image *self);
+/* Set background index of the image. */
+void fig_image_set_background_index(fig_image *self, size_t value);
 /* Exchange order of two frames at the given indices. 0 <= index < size */
 void fig_image_swap_frames(fig_image *self, size_t index_a, size_t index_b);
 /* Append a new frame to the image, and return it. NULL on failure. */
@@ -157,6 +179,8 @@ fig_frame *fig_image_add_frame(fig_image *self);
 fig_frame *fig_image_insert_frame(fig_image *self, size_t index);
 /* Remove a frame from the image and free it. */
 void fig_image_remove_frame(fig_image *self, size_t index);
+/* Render all the frames offline to get their complete appearance. */
+fig_bool_t fig_image_render(fig_image *self);
 /* Free an image created with fig_create_image. */
 void fig_image_free(fig_image *self);
 

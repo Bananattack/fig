@@ -8,8 +8,13 @@ enum {
     /* Header definitions */
     GIF_HEADER_LENGTH = 6,
 
+    /* Block types */
+    GIF_BLOCK_EXTENSION = 0x21,
+    GIF_BLOCK_IMAGE = 0x2C,
+    GIF_BLOCK_TERMINATOR = 0x3B,
+
     /* Extension types */
-    GIF_EXT_GRAPHICS_CONTROL = 0x21,
+    GIF_EXT_GRAPHICS_CONTROL = 0xF9,
     GIF_EXT_PLAIN_TEXT = 0x01,
     GIF_EXT_COMMENT = 0xFE,
     GIF_EXT_APPLICATION = 0xFF,
@@ -27,11 +32,6 @@ enum {
     GIF_GRAPHICS_CTRL_TRANSPARENCY = 0x01,
     GIF_GRAPHICS_CTRL_DISPOSAL_MASK = 0x1C,
     GIF_GRAPHICS_CTRL_DISPOSAL_SHIFT = 2,
-
-    /* Block types */
-    GIF_BLOCK_EXTENSION = 0x21,
-    GIF_BLOCK_IMAGE = 0x2C,
-    GIF_BLOCK_TERMINATOR = 0x3B,
 
     /* LZW definitions */
     GIF_LZW_MAX_BITS = 12,
@@ -52,7 +52,7 @@ typedef struct {
     fig_uint16_t width;
     fig_uint16_t height;
     size_t global_colors;
-    fig_uint8_t bg_index;
+    fig_uint8_t background_index;
     fig_uint8_t aspect;
 } gif_screen_descriptor;
 
@@ -92,7 +92,7 @@ static fig_bool_t gif_read_screen_descriptor(fig_source *src, gif_screen_descrip
     if(fig_source_read_le_u16(src, &screen_desc->width)
     && fig_source_read_le_u16(src, &screen_desc->height)
     && fig_source_read_u8(src, &packed_fields)
-    && fig_source_read_u8(src, &screen_desc->bg_index)
+    && fig_source_read_u8(src, &screen_desc->background_index)
     && fig_source_read_u8(src, &screen_desc->aspect)) {
         if((packed_fields & GIF_SCREEN_DESC_GLOBAL_COLOR) != 0) {
             screen_desc->global_colors = (1 << ((packed_fields & GIF_SCREEN_DESC_DEPTH_MASK) + 1));
@@ -363,6 +363,8 @@ fig_image *fig_load_gif(fig_source *src) {
         return fig_image_free(image), NULL;
     }
 
+    fig_image_set_background_index(image, screen_desc.background_index);
+
     for(;;) {
         fig_uint8_t block_type;
 
@@ -419,6 +421,8 @@ fig_image *fig_load_gif(fig_source *src) {
                 fig_frame_set_y(frame, image_desc.y);
                 fig_frame_set_delay(frame, gfx_ctrl.delay);
                 fig_frame_set_disposal(frame, gfx_ctrl.disposal);
+                fig_frame_set_transparent(frame, gfx_ctrl.transparent);
+                fig_frame_set_transparency_index(frame, gfx_ctrl.transparency_index);
                 fig_frame_calculate_colors(frame, image);
 
                 break;

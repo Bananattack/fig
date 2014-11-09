@@ -21,11 +21,14 @@ int main(int argc, char **argv) {
 
     src = fig_create_file_source(f);
     image = fig_load_gif(src);
+    fig_source_free(src);
+    fclose(f);
     if(image == NULL) {
         return 1;
     }
-    fig_source_free(src);
-    fclose(f);
+    if(!fig_image_render(image)) {
+        return fig_image_free(image), 1;
+    }
 
     {
         size_t frame_count;
@@ -39,10 +42,10 @@ int main(int argc, char **argv) {
             fig_uint32_t *data;
 
             frame = frames[i];
-            width = fig_frame_get_width(frame);
-            height = fig_frame_get_height(frame);
+            width = fig_frame_get_render_width(frame);
+            height = fig_frame_get_render_height(frame);
             frame_size = width * height;
-            data = fig_frame_get_color_data(frame);
+            data = fig_frame_get_render_data(frame);
 
             sprintf(buffer, "out.%03d.ppm", i);
 
