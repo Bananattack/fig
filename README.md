@@ -57,10 +57,12 @@ References
 * W3C. [Cover Sheet for the GIF89a Specification][3].
 * Steve Blackstock. [LZW and GIF explained][4].
 * Bob Montgomery. [LZW compression used to encode/decode a GIF file][5].
-* stb_image. [source code][6].
+* stb. [stb_image.h Source Code][6].
+* ImageMagick v6. [ImageMagick v6 Examples -- Animation Basics][6].
 
 [2]: http://www.matthewflickinger.com/lab/whatsinagif/bits_and_bytes.asp
 [3]: http://www.w3.org/Graphics/GIF/spec-gif89a.txt
 [4]: http://gingko.homeip.net/docs/file_formats/lzwgif.html#ste
 [5]: http://gingko.homeip.net/docs/file_formats/lzwgif.html#bob
 [6]: https://github.com/nothings/stb/blob/master/stb_image.h
+[7]: http://www.imagemagick.org/Usage/anim_basics/
