@@ -428,6 +428,9 @@ fig_image *fig_load_gif(fig_source *src) {
                 break;
             }
             case GIF_BLOCK_TERMINATOR: {
+                if(!fig_image_render(image)) {
+                    return fig_image_free(image), NULL;
+                }
                 return image;
             }
             default:

@@ -26,9 +26,6 @@ int main(int argc, char **argv) {
     if(image == NULL) {
         return 1;
     }
-    if(!fig_image_render(image)) {
-        return fig_image_free(image), 1;
-    }
 
     {
         size_t frame_count;
