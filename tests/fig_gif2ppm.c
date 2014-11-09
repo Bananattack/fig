@@ -4,7 +4,7 @@
 #include <fig.h>
 
 int main(int argc, char **argv) {
-    const char *filename = "../examples/FullColourGIF.gif";
+    const char *filename = "../examples/8x16walk.gif";
     char buffer[256];
     size_t i, j;
     FILE *f;
@@ -53,9 +53,15 @@ int main(int argc, char **argv) {
                 for(j = 0; j < frame_size; ++j) {
                     fig_uint8_t out[3];
 
-                    out[0] = (data[j] >> 16) & 0xFF;
-                    out[1] = (data[j] >> 8) & 0xFF;
-                    out[2] = data[j] & 0xFF;
+                    if(((data[j] >> 24) & 0xFF) == 0) {
+                        out[0] = 0xFF;
+                        out[1] = 0x00;
+                        out[2] = 0xFF;
+                    } else {
+                        out[0] = (data[j] >> 16) & 0xFF;
+                        out[1] = (data[j] >> 8) & 0xFF;
+                        out[2] = data[j] & 0xFF;
+                    }
                     fwrite(out, 3, 1, f);
                 }
                 fclose(f);
