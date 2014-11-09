@@ -23,8 +23,7 @@ fig_image *fig_create_image(void) {
         self->loop_count = 0;
 
         if(self->palette == NULL) {
-            fig_image_free(self);
-            self = NULL;
+            return fig_image_free(self), NULL;
         }
     }
     return self;

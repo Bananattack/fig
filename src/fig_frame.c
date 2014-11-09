@@ -26,8 +26,7 @@ fig_frame *fig_create_frame(void) {
         self->index_data = NULL;
         self->color_data = NULL;
         if(self->palette == NULL) {
-            fig_frame_free(self);
-            self = NULL;
+            return fig_frame_free(self), NULL;
         }
     }
     return self;
@@ -85,22 +84,25 @@ fig_bool_t fig_frame_resize_canvas(fig_frame *self, size_t width, size_t height)
         self->index_data = NULL;
         self->color_data = NULL;
         return 1;
+    } else if(size <= self->width * self->height) {
+        self->width = width;
+        self->height = height;
+        return 1;
     } else {
         fig_uint8_t *index_data;
         fig_uint32_t *color_data;
         index_data = (fig_uint8_t *) realloc(self->index_data, sizeof(fig_uint8_t) * size);
         color_data = (fig_uint32_t *) realloc(self->color_data, sizeof(fig_uint32_t) * size);
-
-        if(index_data != NULL && color_data != NULL) {
+        if(index_data == NULL) {
+            return 0;
+        } else if(color_data == NULL) {
+            return self->index_data = index_data, 0;
+        } else {
             self->width = width;
             self->height = height;
             self->index_data = index_data;
             self->color_data = color_data;
             return 1;
-        } else {
-            free(index_data);
-            free(color_data);
-            return 0;
         }
     }
 }
