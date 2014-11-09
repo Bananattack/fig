@@ -4,7 +4,7 @@
 #include <fig.h>
 
 int main(int argc, char **argv) {
-    const char *filename = "../examples/8x16walk.gif";
+    const char *filename = "../examples/FullColourGIF.gif";
     char buffer[256];
     size_t i, j;
     FILE *f;
