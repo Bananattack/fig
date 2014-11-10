@@ -89,12 +89,12 @@ fig_frame *fig_image_add_frame(fig_image *self) {
     FIG_ASSERT(self->frame_capacity >= self->frame_count);
 
     if(self->frame_count == self->frame_capacity) {
+        fig_frame **data;
         size_t capacity = self->frame_capacity << 1;
         if(capacity == 0) {
             capacity = 1;
         }
 
-        fig_frame **data;
         data = (fig_frame **) realloc(self->frame_data, sizeof(fig_frame*) * capacity);
         if(data == NULL) {
             return NULL;
