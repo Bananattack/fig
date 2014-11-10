@@ -4,7 +4,6 @@
 #include <fig.h>
 
 int main(int argc, char **argv) {
-    const char *filename = "../examples/FullColourGIF.gif";
     char buffer[256];
     size_t i, j;
     FILE *f;
@@ -13,8 +12,12 @@ int main(int argc, char **argv) {
 
     (void) argc;
     (void) argv;
+    if(argc < 2) {
+        fprintf(stderr, "Usage: %s filename\n", argv[0]);
+        return 1;
+    }
 
-    f = fopen(filename, "rb");
+    f = fopen(argv[1], "rb");
     if(f == NULL) {
         return 1;
     }
