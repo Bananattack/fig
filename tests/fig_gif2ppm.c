@@ -10,10 +10,8 @@ int main(int argc, char **argv) {
     fig_source *src;
     fig_image *image;
 
-    (void) argc;
-    (void) argv;
     if(argc < 2) {
-        fprintf(stderr, "Usage: %s filename\n", argv[0]);
+        fputs("Usage: fig_gif2ppm filename\n", stderr);
         return 1;
     }
 
