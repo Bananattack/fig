@@ -36,3 +36,4 @@ vc/tests/[Rr]elease
 *.swp
 *.swo
 *~
+vc/ipch
