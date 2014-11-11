@@ -10,7 +10,6 @@ typedef struct fig_image {
     size_t frame_capacity;
     fig_frame **frame_data;
     size_t loop_count;
-    size_t background_index;
 } fig_image;
 
 fig_image *fig_create_image(void) {
@@ -23,7 +22,6 @@ fig_image *fig_create_image(void) {
         self->frame_capacity = 0;
         self->frame_data = NULL;
         self->loop_count = 0;
-        self->background_index = 0;
 
         if(self->palette == NULL) {
             return fig_image_free(self), NULL;
@@ -64,14 +62,6 @@ size_t fig_image_get_loop_count(fig_image *self) {
 
 void fig_image_set_loop_count(fig_image *self, size_t value) {
     self->loop_count = value;
-}
-
-size_t fig_image_get_background_index(fig_image *self) {
-    return self->background_index;
-}
-
-void fig_image_set_background_index(fig_image *self, size_t value) {
-    self->background_index = value;
 }
 
 void fig_image_swap_frames(fig_image *self, size_t index_a, size_t index_b) {

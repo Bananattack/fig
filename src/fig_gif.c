@@ -363,8 +363,6 @@ fig_image *fig_load_gif(fig_source *src) {
         return fig_image_free(image), NULL;
     }
 
-    fig_image_set_background_index(image, screen_desc.background_index);
-
     for(;;) {
         fig_uint8_t block_type;
 

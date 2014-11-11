@@ -40,6 +40,26 @@ typedef struct fig_image fig_image;
 typedef struct fig_source_callbacks fig_source_callbacks;
 typedef struct fig_source fig_source;
 
+
+
+/* An enumeration of possible frame disposal modes, performed
+after this frame is finished, but before the next one is drawn. */
+typedef enum fig_disposal_t {
+    /* Replace this frame. */
+    FIG_DISPOSAL_UNSPECIFIED,
+    /* Draw next frame over this. */
+    FIG_DISPOSAL_NONE,
+    /* Clear the area used by the frame to background. */
+    FIG_DISPOSAL_BACKGROUND,
+    /* Clear to previous frame. */
+    FIG_DISPOSAL_PREVIOUS,
+    /* Number of disposal types. */
+    FIG_DISPOSAL_COUNT
+} fig_disposal_t;
+
+
+
+/* An enumeration of possible seek origins for sources. */
 typedef enum fig_seek_origin_t {
     /* Seek forward from beginning of file. */
     FIG_SEEK_SET = SEEK_SET,
@@ -68,23 +88,6 @@ void fig_palette_set(fig_palette *self, size_t index, fig_uint32_t color);
 fig_bool_t fig_palette_resize(fig_palette *self, size_t size);
 /* Free a palette created with fig_create_palette. */
 void fig_palette_free(fig_palette *self);
-
-
-
-/* An enumeration of possible frame disposal modes, performed
-after this frame is finished, but before the next one is drawn. */
-typedef enum fig_disposal_t {
-    /* Replace this frame. */
-    FIG_DISPOSAL_UNSPECIFIED,
-    /* Draw next frame over this. */
-    FIG_DISPOSAL_NONE,
-    /* Clear the area used by the frame to background. */
-    FIG_DISPOSAL_BACKGROUND,
-    /* Clear to previous frame. */
-    FIG_DISPOSAL_PREVIOUS,
-    /* Number of disposal types. */
-    FIG_DISPOSAL_COUNT
-} fig_disposal_t;
 
 
 
@@ -167,10 +170,6 @@ fig_frame **fig_image_get_frames(fig_image *self);
 size_t fig_image_get_loop_count(fig_image *self);
 /* Set loop count of the image's animation. 0 = infinite looping */
 void fig_image_set_loop_count(fig_image *self, size_t value);
-/* Get background index of the image. */
-size_t fig_image_get_background_index(fig_image *self);
-/* Set background index of the image. */
-void fig_image_set_background_index(fig_image *self, size_t value);
 /* Exchange order of two frames at the given indices. 0 <= index < size */
 void fig_image_swap_frames(fig_image *self, size_t index_a, size_t index_b);
 /* Append a new frame to the image, and return it. NULL on failure. */
