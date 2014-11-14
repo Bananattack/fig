@@ -15,11 +15,11 @@
     <ClInclude Include="..\include\fig_config.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\fig_animation.c" />
     <ClCompile Include="..\src\fig_frame.c" />
     <ClCompile Include="..\src\fig_palette.c" />
     <ClCompile Include="..\src\fig_source.c" />
     <ClCompile Include="..\src\fig_gif.c" />
-    <ClCompile Include="..\src\fig_image.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EB138DE3-5F23-4CC7-ABAE-E5813495A0AF}</ProjectGuid>
