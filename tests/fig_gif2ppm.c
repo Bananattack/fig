@@ -29,21 +29,21 @@ int main(int argc, char **argv) {
     }
 
     {
-        size_t frame_count;
-        fig_frame **frames;
-        frame_count = fig_animation_count_frames(animation);
-        frames = fig_animation_get_frames(animation);
+        size_t image_count;
+        fig_image **images;
+        image_count = fig_animation_count_images(animation);
+        images = fig_animation_get_images(animation);
 
-        for(i = 0; i < frame_count; ++i) {
-            fig_frame *frame;
-            size_t width, height, frame_size;
+        for(i = 0; i < image_count; ++i) {
+            fig_image *image;
+            size_t width, height, image_size;
             fig_uint32_t *data;
 
-            frame = frames[i];
-            width = fig_frame_get_render_width(frame);
-            height = fig_frame_get_render_height(frame);
-            frame_size = width * height;
-            data = fig_frame_get_render_data(frame);
+            image = images[i];
+            width = fig_image_get_render_width(image);
+            height = fig_image_get_render_height(image);
+            image_size = width * height;
+            data = fig_image_get_render_data(image);
 
             sprintf(buffer, "out.%03d.ppm", i);
 
@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
 
             if(f != NULL) {
                 fprintf(f, "P6 %d %d 255 ", width, height);
-                for(j = 0; j < frame_size; ++j) {
+                for(j = 0; j < image_size; ++j) {
                     fig_uint8_t out[3];
 
                     if(((data[j] >> 24) & 0xFF) == 0) {

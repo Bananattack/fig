@@ -396,32 +396,32 @@ fig_animation *fig_load_gif(fig_source *src) {
                 break;
             }
             case GIF_BLOCK_IMAGE: {
-                fig_frame *frame;
+                fig_image *image;
                 gif_image_descriptor image_desc;
                 
                 memset(&image_desc, 0, sizeof(image_desc));
                 gif_read_image_descriptor(src, &image_desc);
-                frame = fig_animation_add_frame(animation);
+                image = fig_animation_add_image(animation);
 
-                if(frame == NULL
-                || !fig_frame_resize_canvas(frame, image_desc.width, image_desc.height)) {
+                if(image == NULL
+                || !fig_image_resize_canvas(image, image_desc.width, image_desc.height)) {
                     return fig_animation_free(animation), NULL;
                 }
                 if(image_desc.local_colors > 0
-                && !gif_read_palette(src, image_desc.local_colors, fig_frame_get_palette(frame))) {
+                && !gif_read_palette(src, image_desc.local_colors, fig_image_get_palette(image))) {
                     return fig_animation_free(animation), NULL;
                 }
-                if(!gif_read_image_data(src, &image_desc, fig_frame_get_index_data(frame))) {
+                if(!gif_read_image_data(src, &image_desc, fig_image_get_index_data(image))) {
                     return fig_animation_free(animation), NULL;
                 }
 
-                fig_frame_set_x(frame, image_desc.x);
-                fig_frame_set_y(frame, image_desc.y);
-                fig_frame_set_delay(frame, gfx_ctrl.delay);
-                fig_frame_set_disposal(frame, gfx_ctrl.disposal);
-                fig_frame_set_transparent(frame, gfx_ctrl.transparent);
-                fig_frame_set_transparency_index(frame, gfx_ctrl.transparency_index);
-                fig_frame_calculate_colors(frame, animation);
+                fig_image_set_x(image, image_desc.x);
+                fig_image_set_y(image, image_desc.y);
+                fig_image_set_delay(image, gfx_ctrl.delay);
+                fig_image_set_disposal(image, gfx_ctrl.disposal);
+                fig_image_set_transparent(image, gfx_ctrl.transparent);
+                fig_image_set_transparency_index(image, gfx_ctrl.transparency_index);
+                fig_image_calculate_colors(image, animation);
 
                 break;
             }

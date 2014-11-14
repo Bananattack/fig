@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <fig.h>
 
-typedef struct fig_frame {
+typedef struct fig_image {
     size_t x;
     size_t y;
     size_t canvas_width;
@@ -16,10 +16,10 @@ typedef struct fig_frame {
     size_t render_width;
     size_t render_height;
     fig_uint32_t *render_data;
-} fig_frame;
+} fig_image;
 
-fig_frame *fig_create_frame(void) {
-    fig_frame *self = (fig_frame *) malloc(sizeof(fig_frame));
+fig_image *fig_create_image(void) {
+    fig_image *self = (fig_image *) malloc(sizeof(fig_image));
     if(self != NULL) {
         self->x = 0;
         self->y = 0;
@@ -36,65 +36,65 @@ fig_frame *fig_create_frame(void) {
         self->render_height = 0;
         self->render_data = NULL;
         if(self->palette == NULL) {
-            return fig_frame_free(self), NULL;
+            return fig_image_free(self), NULL;
         }
     }
     return self;
 }
 
-fig_palette *fig_frame_get_palette(fig_frame *self) {
+fig_palette *fig_image_get_palette(fig_image *self) {
     return self->palette;
 }
 
-fig_uint8_t *fig_frame_get_index_data(fig_frame *self) {
+fig_uint8_t *fig_image_get_index_data(fig_image *self) {
     return self->index_data;
 }
 
-fig_uint32_t *fig_frame_get_color_data(fig_frame *self) {
+fig_uint32_t *fig_image_get_color_data(fig_image *self) {
     return self->color_data;
 }
 
-size_t fig_frame_get_x(fig_frame *self) {
+size_t fig_image_get_x(fig_image *self) {
     return self->x;
 }
 
-size_t fig_frame_get_y(fig_frame *self) {
+size_t fig_image_get_y(fig_image *self) {
     return self->y;
 }
 
-size_t fig_frame_get_canvas_width(fig_frame *self) {
+size_t fig_image_get_canvas_width(fig_image *self) {
     return self->canvas_width;
 }
 
-size_t fig_frame_get_canvas_height(fig_frame *self) {
+size_t fig_image_get_canvas_height(fig_image *self) {
     return self->canvas_height;
 }
 
-size_t fig_frame_get_delay(fig_frame *self) {
+size_t fig_image_get_delay(fig_image *self) {
     return self->delay;
 }
 
-fig_disposal_t fig_frame_get_disposal(fig_frame *self) {
+fig_disposal_t fig_image_get_disposal(fig_image *self) {
     return self->disposal;
 }
 
-fig_bool_t fig_frame_get_transparent(fig_frame *self) {
+fig_bool_t fig_image_get_transparent(fig_image *self) {
     return self->transparent;
 }
 
-size_t fig_frame_get_transparency_index(fig_frame *self) {
+size_t fig_image_get_transparency_index(fig_image *self) {
     return self->transparency_index;
 }
 
-void fig_frame_set_x(fig_frame *self, size_t value) {
+void fig_image_set_x(fig_image *self, size_t value) {
     self->x = value;
 }
 
-void fig_frame_set_y(fig_frame *self, size_t value) {
+void fig_image_set_y(fig_image *self, size_t value) {
     self->y = value;
 }
 
-fig_bool_t fig_frame_resize_canvas(fig_frame *self, size_t width, size_t height) {
+fig_bool_t fig_image_resize_canvas(fig_image *self, size_t width, size_t height) {
     size_t size = width * height;
     if(size == 0) {
         free(self->index_data);
@@ -121,23 +121,23 @@ fig_bool_t fig_frame_resize_canvas(fig_frame *self, size_t width, size_t height)
     }
 }
 
-void fig_frame_set_delay(fig_frame *self, size_t value) {
+void fig_image_set_delay(fig_image *self, size_t value) {
     self->delay = value;
 }
 
-void fig_frame_set_disposal(fig_frame *self, fig_disposal_t value) {
+void fig_image_set_disposal(fig_image *self, fig_disposal_t value) {
     self->disposal = value;
 }
 
-void fig_frame_set_transparent(fig_frame *self, fig_bool_t value) {
+void fig_image_set_transparent(fig_image *self, fig_bool_t value) {
     self->transparent = value;
 }
 
-void fig_frame_set_transparency_index(fig_frame *self, size_t value) {
+void fig_image_set_transparency_index(fig_image *self, size_t value) {
     self->transparency_index = value;
 }
 
- void fig_frame_calculate_colors(fig_frame *self, fig_animation *animation) {
+ void fig_image_calculate_colors(fig_image *self, fig_animation *animation) {
      fig_palette *palette;
      size_t color_count;
      fig_uint32_t *colors;
@@ -150,7 +150,7 @@ void fig_frame_set_transparency_index(fig_frame *self, size_t value) {
          return;
      }
 
-     palette = fig_frame_get_render_palette(self, animation);
+     palette = fig_image_get_render_palette(self, animation);
      color_count = fig_palette_count_colors(palette);
      colors = fig_palette_get_colors(palette);
      image_size = self->canvas_width * self->canvas_height;
@@ -167,19 +167,19 @@ void fig_frame_set_transparency_index(fig_frame *self, size_t value) {
      }
  }
 
-size_t fig_frame_get_render_width(fig_frame *self) {
+size_t fig_image_get_render_width(fig_image *self) {
     return self->render_width;
 }
 
-size_t fig_frame_get_render_height(fig_frame *self) {
+size_t fig_image_get_render_height(fig_image *self) {
     return self->render_height;
 }
 
-fig_uint32_t *fig_frame_get_render_data(fig_frame *self) {
+fig_uint32_t *fig_image_get_render_data(fig_image *self) {
     return self->render_data;
 }
 
-fig_palette *fig_frame_get_render_palette(fig_frame *self, fig_animation *animation) {
+fig_palette *fig_image_get_render_palette(fig_image *self, fig_animation *animation) {
      if(fig_palette_count_colors(self->palette) > 0) {
         return self->palette;
      } else {
@@ -187,7 +187,7 @@ fig_palette *fig_frame_get_render_palette(fig_frame *self, fig_animation *animat
      }
 }
 
-fig_bool_t fig_frame_resize_render(fig_frame *self, size_t width, size_t height) {
+fig_bool_t fig_image_resize_render(fig_image *self, size_t width, size_t height) {
     size_t size = width * height;
     if(size == 0) {
         free(self->render_data);
@@ -207,7 +207,7 @@ fig_bool_t fig_frame_resize_render(fig_frame *self, size_t width, size_t height)
     }
 }
 
-void fig_frame_free(fig_frame *self) {
+void fig_image_free(fig_image *self) {
     if(self != NULL) {
         if(self->palette != NULL) {
             fig_palette_free(self->palette);

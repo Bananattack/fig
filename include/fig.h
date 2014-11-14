@@ -39,7 +39,7 @@ typedef int fig_validate_uint32_t[sizeof(fig_uint32_t) == 4 && (fig_uint32_t) -1
 typedef int fig_validate_offset_t[sizeof(fig_offset_t) >= 4 && (fig_offset_t) -1 < 0 ? 1 : -1];
 
 typedef struct fig_palette fig_palette;
-typedef struct fig_frame fig_frame;
+typedef struct fig_image fig_image;
 typedef struct fig_animation fig_animation;
 typedef struct fig_source_callbacks fig_source_callbacks;
 typedef struct fig_source fig_source;
@@ -95,65 +95,65 @@ void fig_palette_free(fig_palette *self);
 
 
 
-/* An individual frame in an animation. */
-typedef struct fig_frame fig_frame;
+/* An image containing BGRA color data and possibly paletted index data. */
+typedef struct fig_image fig_image;
 
-/* Return a new frame, or NULL on failure. */
-fig_frame *fig_create_frame(void);
-/* Get the palette associated with the frame. */
-fig_palette *fig_frame_get_palette(fig_frame *self);
-/* Get a raw pointer to frame index data. */
-fig_uint8_t *fig_frame_get_index_data(fig_frame *self);
-/* Get a raw pointer to frame BGRA color data. */
-fig_uint32_t *fig_frame_get_color_data(fig_frame *self);
-/* Get the x position of the frame. */
-size_t fig_frame_get_x(fig_frame *self);
-/* Get the y position of the frame. */
-size_t fig_frame_get_y(fig_frame *self);
-/* Get the width of the frame. */
-size_t fig_frame_get_canvas_width(fig_frame *self);
-/* Get the height of the frame. */
-size_t fig_frame_get_canvas_height(fig_frame *self);
-/* Get the delay to apply on this frame. */
-size_t fig_frame_get_delay(fig_frame *self);
-/* Get the disposal to apply between this frame and the next. */
-fig_disposal_t fig_frame_get_disposal(fig_frame *self);
-/* Get whether the frame has transparent parts. */
-fig_bool_t fig_frame_get_transparent(fig_frame *self);
+/* Return a new image, or NULL on failure. */
+fig_image *fig_create_image(void);
+/* Get the palette associated with the image. */
+fig_palette *fig_image_get_palette(fig_image *self);
+/* Get a raw pointer to image index data. */
+fig_uint8_t *fig_image_get_index_data(fig_image *self);
+/* Get a raw pointer to image BGRA color data. */
+fig_uint32_t *fig_image_get_color_data(fig_image *self);
+/* Get the x position of the image. */
+size_t fig_image_get_x(fig_image *self);
+/* Get the y position of the image. */
+size_t fig_image_get_y(fig_image *self);
+/* Get the width of the image. */
+size_t fig_image_get_canvas_width(fig_image *self);
+/* Get the height of the image. */
+size_t fig_image_get_canvas_height(fig_image *self);
+/* Get the delay to apply on this image. */
+size_t fig_image_get_delay(fig_image *self);
+/* Get the disposal to apply between this image and the next. */
+fig_disposal_t fig_image_get_disposal(fig_image *self);
+/* Get whether the image has transparent parts. */
+fig_bool_t fig_image_get_transparent(fig_image *self);
 /* Get the color that should be transparent during rendering. */
-size_t fig_frame_get_transparency_index(fig_frame *self);
-/* Set the x position of the frame. */
-void fig_frame_set_x(fig_frame *self, size_t value);
-/* Set the y position of the frame. */
-void fig_frame_set_y(fig_frame *self, size_t value);
-/* Resize the canvas area of the frame */
-fig_bool_t fig_frame_resize_canvas(fig_frame *self, size_t width, size_t height);
-/* Set the delay to apply on this frame. */
-void fig_frame_set_delay(fig_frame *self, size_t value);
-/* Set the disposal to apply between this frame and the next. */
-void fig_frame_set_disposal(fig_frame *self, fig_disposal_t value);
-/* Set whether the frame has transparent parts. */
-void fig_frame_set_transparent(fig_frame *self, fig_bool_t value);
+size_t fig_image_get_transparency_index(fig_image *self);
+/* Set the x position of the image. */
+void fig_image_set_x(fig_image *self, size_t value);
+/* Set the y position of the image. */
+void fig_image_set_y(fig_image *self, size_t value);
+/* Resize the canvas area of the image */
+fig_bool_t fig_image_resize_canvas(fig_image *self, size_t width, size_t height);
+/* Set the delay to apply on this image. */
+void fig_image_set_delay(fig_image *self, size_t value);
+/* Set the disposal to apply between this image and the next. */
+void fig_image_set_disposal(fig_image *self, fig_disposal_t value);
+/* Set whether the image has transparent parts. */
+void fig_image_set_transparent(fig_image *self, fig_bool_t value);
 /* Set the color that should be transparent during rendering. */
-void fig_frame_set_transparency_index(fig_frame *self, size_t value);
+void fig_image_set_transparency_index(fig_image *self, size_t value);
 /* Update the color data by converting the index data into BGRA colors. */
-void fig_frame_calculate_colors(fig_frame *self, fig_animation *animation);
-/* Get the width of the frame's render. */
-size_t fig_frame_get_render_width(fig_frame *self);
-/* Get the height of the frame's render. */
-size_t fig_frame_get_render_height(fig_frame *self);
+void fig_image_calculate_colors(fig_image *self, fig_animation *animation);
+/* Get the width of the image's render. */
+size_t fig_image_get_render_width(fig_image *self);
+/* Get the height of the image's render. */
+size_t fig_image_get_render_height(fig_image *self);
 /* Get a raw pointer to rendered BGRA color data. */
-fig_uint32_t *fig_frame_get_render_data(fig_frame *self);
+fig_uint32_t *fig_image_get_render_data(fig_image *self);
 /* Get the palette to apply for rendering. */
-fig_palette *fig_frame_get_render_palette(fig_frame *self, fig_animation *animation);
-/* Resize the overall render of the frame */
-fig_bool_t fig_frame_resize_render(fig_frame *self, size_t width, size_t height);
-/* Free a frame created with fig_create_frame. */
-void fig_frame_free(fig_frame *self);
+fig_palette *fig_image_get_render_palette(fig_image *self, fig_animation *animation);
+/* Resize the overall render of the image */
+fig_bool_t fig_image_resize_render(fig_image *self, size_t width, size_t height);
+/* Free a image created with fig_create_image. */
+void fig_image_free(fig_image *self);
 
 
 
-/* An animation containing a background canvas, frames, and a palette */
+/* An animation containing a multiple images and a palette */
 typedef struct fig_animation fig_animation;
 
 /* Return a new animation, or NULL on failure. */
@@ -166,23 +166,23 @@ size_t fig_animation_get_width(fig_animation *self);
 size_t fig_animation_get_height(fig_animation *self);
 /* Resize the canvas area of the animation. */
 fig_bool_t fig_animation_resize_canvas(fig_animation *self, size_t width, size_t height);
-/* Get frame count of the animation. */
-size_t fig_animation_count_frames(fig_animation *self);
-/* Get a raw pointer to contiguous frame data, possibly NULL. */
-fig_frame **fig_animation_get_frames(fig_animation *self);
+/* Get the image count of the animation. */
+size_t fig_animation_count_images(fig_animation *self);
+/* Get a raw pointer to a contiguous image array, possibly NULL. */
+fig_image **fig_animation_get_images(fig_animation *self);
 /* Get loop count of the animation. 0 = infinite looping */
 size_t fig_animation_get_loop_count(fig_animation *self);
 /* Set loop count of the animation. 0 = infinite looping */
 void fig_animation_set_loop_count(fig_animation *self, size_t value);
-/* Exchange order of two frames at the given indices. 0 <= index < size */
-void fig_animation_swap_frames(fig_animation *self, size_t index_a, size_t index_b);
-/* Append a new frame to the animation, and return it. NULL on failure. */
-fig_frame *fig_animation_add_frame(fig_animation *self);
-/* Insert a new frame, and return it. NULL on failure. 0 <= index <= size */
-fig_frame *fig_animation_insert_frame(fig_animation *self, size_t index);
-/* Remove a frame from the animation and free it. */
-void fig_animation_remove_frame(fig_animation *self, size_t index);
-/* Render all the frames offline to get their complete appearance. */
+/* Exchange order of two images at the given indices. 0 <= index < size */
+void fig_animation_swap_images(fig_animation *self, size_t index_a, size_t index_b);
+/* Append a new image to the animation, and return it. NULL on failure. */
+fig_image *fig_animation_add_image(fig_animation *self);
+/* Insert a new image, and return it. NULL on failure. 0 <= index <= size */
+fig_image *fig_animation_insert_image(fig_animation *self, size_t index);
+/* Remove a image from the animation and free it. */
+void fig_animation_remove_image(fig_animation *self, size_t index);
+/* Render all the images offline to get their complete appearance. */
 fig_bool_t fig_animation_render(fig_animation *self);
 /* Free an animation created with fig_create_animation. */
 void fig_animation_free(fig_animation *self);

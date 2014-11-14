@@ -6,9 +6,9 @@ typedef struct fig_animation {
     size_t width;
     size_t height;
     fig_palette *palette;
-    size_t frame_count;
-    size_t frame_capacity;
-    fig_frame **frame_data;
+    size_t image_count;
+    size_t image_capacity;
+    fig_image **image_data;
     size_t loop_count;
 } fig_animation;
 
@@ -18,9 +18,9 @@ fig_animation *fig_create_animation(void) {
         self->width = 0;
         self->height = 0;
         self->palette = fig_create_palette();
-        self->frame_count = 0;
-        self->frame_capacity = 0;
-        self->frame_data = NULL;
+        self->image_count = 0;
+        self->image_capacity = 0;
+        self->image_data = NULL;
         self->loop_count = 0;
 
         if(self->palette == NULL) {
@@ -48,12 +48,12 @@ fig_bool_t fig_animation_resize_canvas(fig_animation *self, size_t width, size_t
     return 1;
 }
 
-size_t fig_animation_count_frames(fig_animation *self) {
-    return self->frame_count;
+size_t fig_animation_count_images(fig_animation *self) {
+    return self->image_count;
 }
 
-fig_frame **fig_animation_get_frames(fig_animation *self) {
-    return self->frame_data;
+fig_image **fig_animation_get_images(fig_animation *self) {
+    return self->image_data;
 }
 
 size_t fig_animation_get_loop_count(fig_animation *self) {
@@ -64,89 +64,89 @@ void fig_animation_set_loop_count(fig_animation *self, size_t value) {
     self->loop_count = value;
 }
 
-void fig_animation_swap_frames(fig_animation *self, size_t index_a, size_t index_b) {
-    fig_frame *temp;
-    FIG_ASSERT(index_a < self->frame_count);
-    FIG_ASSERT(index_b < self->frame_count);
+void fig_animation_swap_images(fig_animation *self, size_t index_a, size_t index_b) {
+    fig_image *temp;
+    FIG_ASSERT(index_a < self->image_count);
+    FIG_ASSERT(index_b < self->image_count);
 
-    temp = self->frame_data[index_a];
-    self->frame_data[index_a] = self->frame_data[index_b];
-    self->frame_data[index_b] = temp;
+    temp = self->image_data[index_a];
+    self->image_data[index_a] = self->image_data[index_b];
+    self->image_data[index_b] = temp;
 }
 
-fig_frame *fig_animation_add_frame(fig_animation *self) {
-    fig_frame *frame;
-    FIG_ASSERT(self->frame_capacity >= self->frame_count);
+fig_image *fig_animation_add_image(fig_animation *self) {
+    fig_image *image;
+    FIG_ASSERT(self->image_capacity >= self->image_count);
 
-    if(self->frame_count == self->frame_capacity) {
-        fig_frame **data;
-        size_t capacity = self->frame_capacity << 1;
+    if(self->image_count == self->image_capacity) {
+        fig_image **data;
+        size_t capacity = self->image_capacity << 1;
         if(capacity == 0) {
             capacity = 1;
         }
 
-        data = (fig_frame **) realloc(self->frame_data, sizeof(fig_frame*) * capacity);
+        data = (fig_image **) realloc(self->image_data, sizeof(fig_image*) * capacity);
         if(data == NULL) {
             return NULL;
         }
-        self->frame_data = data;
-        self->frame_capacity = capacity;
+        self->image_data = data;
+        self->image_capacity = capacity;
     }
 
-    frame = fig_create_frame();
-    if(frame != NULL) {
-        self->frame_data[self->frame_count++] = frame;
+    image = fig_create_image();
+    if(image != NULL) {
+        self->image_data[self->image_count++] = image;
     }
-    return frame;
+    return image;
 }
 
-fig_frame *fig_animation_insert_frame(fig_animation *self, size_t index) {
-    fig_frame *frame;
-    fig_frame **data;
+fig_image *fig_animation_insert_image(fig_animation *self, size_t index) {
+    fig_image *image;
+    fig_image **data;
     size_t i;
-    FIG_ASSERT(index < self->frame_count + 1);
+    FIG_ASSERT(index < self->image_count + 1);
 
-    frame = fig_animation_add_frame(self);
-    if(frame == NULL) {
+    image = fig_animation_add_image(self);
+    if(image == NULL) {
         return NULL;
     }
 
-    data = self->frame_data;
-    for(i = self->frame_count - 1; i > index; --i) {
+    data = self->image_data;
+    for(i = self->image_count - 1; i > index; --i) {
         data[i] = data[i - 1];
     }
-    data[index] = frame;
-    return frame;
+    data[index] = image;
+    return image;
 }
 
 void fig_animation_remove(fig_animation *self, size_t index) {
-    fig_frame **data;
+    fig_image **data;
     size_t i, end;
-    FIG_ASSERT(index < self->frame_count);
+    FIG_ASSERT(index < self->image_count);
 
-    data = self->frame_data;
-    fig_frame_free(data[index]);
-    for(i = index, end = self->frame_count - 1; i < end; ++i) {
+    data = self->image_data;
+    fig_image_free(data[index]);
+    for(i = index, end = self->image_count - 1; i < end; ++i) {
         data[i] = data[i + 1];
     }
-    --self->frame_count;
+    --self->image_count;
 }
 
-static void clear_frame(fig_animation *self, fig_frame *frame) {
+static void clear_image(fig_animation *self, fig_image *image) {
     size_t i;
     size_t size;
     fig_uint32_t color;
     fig_uint32_t *render_data;
 
-    size = fig_frame_get_render_width(frame) * fig_frame_get_render_height(frame);
+    size = fig_image_get_render_width(image) * fig_image_get_render_height(image);
     color = 0;
-    render_data = fig_frame_get_render_data(frame);
+    render_data = fig_image_get_render_data(image);
     for(i = 0; i < size; ++i) {
         render_data[i] = color;
     }
 }
 
-static void dispose_frame(fig_animation *self, fig_frame *prev, fig_frame *cur, fig_frame *next) {
+static void dispose_image(fig_animation *self, fig_image *prev, fig_image *cur, fig_image *next) {
     fig_palette *palette;
     size_t color_count;
     fig_uint32_t *colors;
@@ -159,20 +159,20 @@ static void dispose_frame(fig_animation *self, fig_frame *prev, fig_frame *cur, 
     fig_uint32_t *next_render_data;
     fig_disposal_t disposal;
 
-    palette = fig_frame_get_render_palette(next, self);
+    palette = fig_image_get_render_palette(next, self);
     color_count = fig_palette_count_colors(palette);
     colors = fig_palette_get_colors(palette);
-    cur_x = fig_frame_get_x(cur);
-    cur_y = fig_frame_get_y(cur);
-    cur_w = fig_frame_get_canvas_width(cur);
-    cur_h = fig_frame_get_canvas_height(cur);
-    cur_transparent = fig_frame_get_transparent(cur);
-    cur_transparency_index = fig_frame_get_transparency_index(cur);
-    cur_index_data = fig_frame_get_index_data(cur);
-    next_transparent = fig_frame_get_transparent(next);
-    next_transparency_index = fig_frame_get_transparency_index(next);
-    next_render_data = fig_frame_get_render_data(next);
-    disposal = fig_frame_get_disposal(cur);
+    cur_x = fig_image_get_x(cur);
+    cur_y = fig_image_get_y(cur);
+    cur_w = fig_image_get_canvas_width(cur);
+    cur_h = fig_image_get_canvas_height(cur);
+    cur_transparent = fig_image_get_transparent(cur);
+    cur_transparency_index = fig_image_get_transparency_index(cur);
+    cur_index_data = fig_image_get_index_data(cur);
+    next_transparent = fig_image_get_transparent(next);
+    next_transparency_index = fig_image_get_transparency_index(next);
+    next_render_data = fig_image_get_render_data(next);
+    disposal = fig_image_get_disposal(cur);
 
     switch(disposal) {
         case FIG_DISPOSAL_BACKGROUND: {
@@ -190,7 +190,7 @@ static void dispose_frame(fig_animation *self, fig_frame *prev, fig_frame *cur, 
             size_t i, j;
             fig_uint32_t *prev_render_data;
 
-            prev_render_data = prev != NULL ? fig_frame_get_render_data(prev) : NULL;
+            prev_render_data = prev != NULL ? fig_image_get_render_data(prev) : NULL;
             
             for(i = 0; i < cur_h; ++i) {
                 for(j = 0; j < cur_w; ++j) {
@@ -209,7 +209,7 @@ static void dispose_frame(fig_animation *self, fig_frame *prev, fig_frame *cur, 
     }
 }
 
-static void blit_frame(fig_animation *self, fig_frame *frame) {
+static void blit_image(fig_animation *self, fig_image *image) {
     fig_palette *palette;
     size_t color_count;
     fig_uint32_t *colors;
@@ -220,17 +220,17 @@ static void blit_frame(fig_animation *self, fig_frame *frame) {
     fig_uint32_t *render_data;
     size_t i, j;
 
-    palette = fig_frame_get_render_palette(frame, self);
+    palette = fig_image_get_render_palette(image, self);
     color_count = fig_palette_count_colors(palette);
     colors = fig_palette_get_colors(palette);
-    x = fig_frame_get_x(frame);
-    y = fig_frame_get_y(frame);
-    w = fig_frame_get_canvas_width(frame);
-    h = fig_frame_get_canvas_height(frame);
-    transparent = fig_frame_get_transparent(frame);
-    transparency_index = fig_frame_get_transparency_index(frame);
-    index_data = fig_frame_get_index_data(frame);
-    render_data = fig_frame_get_render_data(frame);
+    x = fig_image_get_x(image);
+    y = fig_image_get_y(image);
+    w = fig_image_get_canvas_width(image);
+    h = fig_image_get_canvas_height(image);
+    transparent = fig_image_get_transparent(image);
+    transparency_index = fig_image_get_transparency_index(image);
+    index_data = fig_image_get_index_data(image);
+    render_data = fig_image_get_render_data(image);
 
     for(i = 0; i < h; ++i) {
         for(j = 0; j < w; ++j) {
@@ -244,37 +244,37 @@ static void blit_frame(fig_animation *self, fig_frame *frame) {
 }
 
 fig_bool_t fig_animation_render(fig_animation *self) {
-    fig_frame **frames;
-    size_t frame_count;
-    fig_frame *prev;
-    fig_frame *cur;
-    fig_frame *next;
+    fig_image **images;
+    size_t image_count;
+    fig_image *prev;
+    fig_image *cur;
+    fig_image *next;
     fig_disposal_t disposal;
     size_t i;
 
-    frames = self->frame_data;
-    frame_count = self->frame_count;
+    images = self->image_data;
+    image_count = self->image_count;
     prev = NULL;
     cur = NULL;
     next = NULL;
 
-    for(i = 0; i < frame_count; ++i) {
-        next = frames[i];
-        if(!fig_frame_resize_render(next, self->width, self->height)) {
+    for(i = 0; i < image_count; ++i) {
+        next = images[i];
+        if(!fig_image_resize_render(next, self->width, self->height)) {
             return 0;
         }
 
         if(cur == NULL) {
-            clear_frame(self, next);
+            clear_image(self, next);
         } else {
-            memcpy(fig_frame_get_render_data(next), fig_frame_get_render_data(cur), sizeof(fig_uint32_t) * self->width * self->height);
-            dispose_frame(self, prev, cur, next);
+            memcpy(fig_image_get_render_data(next), fig_image_get_render_data(cur), sizeof(fig_uint32_t) * self->width * self->height);
+            dispose_image(self, prev, cur, next);
         }
 
-        blit_frame(self, next);
+        blit_image(self, next);
 
         if(cur != NULL) {
-            disposal = fig_frame_get_disposal(cur);
+            disposal = fig_image_get_disposal(cur);
             if(disposal == FIG_DISPOSAL_NONE || disposal == FIG_DISPOSAL_UNSPECIFIED) {
                 prev = cur;
             }
@@ -289,14 +289,14 @@ void fig_animation_free(fig_animation *self) {
         if(self->palette != NULL) {
             fig_palette_free(self->palette);
         }
-        if(self->frame_data != NULL) {
-            fig_frame **data;
+        if(self->image_data != NULL) {
+            fig_image **data;
             size_t i;
-            data = self->frame_data;
-            for(i = 0; i < self->frame_count; ++i) {
-                fig_frame_free(data[i]);
+            data = self->image_data;
+            for(i = 0; i < self->image_count; ++i) {
+                fig_image_free(data[i]);
             }
-            free(self->frame_data);
+            free(self->image_data);
         }
     }
     free(self);
