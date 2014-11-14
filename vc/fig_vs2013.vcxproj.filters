@@ -29,13 +29,13 @@
     <ClCompile Include="..\src\fig_source.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\fig_frame.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\fig_palette.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\fig_animation.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\fig_image.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
