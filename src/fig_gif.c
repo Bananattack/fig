@@ -194,7 +194,6 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_descriptor *ima
     size_t y;
     fig_uint8_t pass;
     fig_uint8_t y_increment;
-
     size_t width;
     size_t height;
     fig_uint8_t *index_data;
@@ -212,10 +211,6 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_descriptor *ima
     code_mask = (1 << code_size) - 1;
     avail = eoi + 1;
     old_code = GIF_LZW_NULL_CODE;
-
-    width = fig_image_get_canvas_width(image);
-    height = fig_image_get_canvas_height(image);
-    index_data = fig_image_get_index_data(image);
     
     {
         fig_uint16_t i;
@@ -236,6 +231,9 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_descriptor *ima
     y = image_desc->y;
     pass = image_desc->interlace ? 3 : 0;
     y_increment = image_desc->interlace ? 8 : 1;
+    width = fig_image_get_canvas_width(image);
+    height = fig_image_get_canvas_height(image);
+    index_data = fig_image_get_index_data(image);
 
     for(;;) {
         if (bits < code_size) {
