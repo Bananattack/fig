@@ -136,13 +136,13 @@ static void clear_image(fig_animation *self, fig_image *image) {
     size_t i;
     size_t size;
     fig_uint32_t color;
-    fig_uint32_t *color_data;
+    fig_uint32_t *canvas_data;
 
     size = fig_image_get_canvas_width(image) * fig_image_get_canvas_height(image);
     color = 0;
-    color_data = fig_image_get_color_data(image);
+    canvas_data = fig_image_get_canvas_data(image);
     for(i = 0; i < size; ++i) {
-        color_data[i] = color;
+        canvas_data[i] = color;
     }
 }
 
@@ -156,19 +156,22 @@ static void dispose_image(fig_animation *self, fig_image *prev, fig_image *cur, 
     fig_uint8_t *cur_index_data;
     fig_bool_t next_transparent;
     size_t next_transparency_index;
-    fig_uint32_t *next_color_data;
+    fig_uint32_t *next_canvas_data;
     fig_disposal_t disposal;
 
     palette = fig_image_get_render_palette(next, self);
     color_count = fig_palette_count_colors(palette);
     colors = fig_palette_get_colors(palette);
-    fig_image_get_region(cur, &cur_x, &cur_y, &cur_w, &cur_h);
+    cur_x = fig_image_get_index_x(cur);
+    cur_y = fig_image_get_index_y(cur);
+    cur_w = fig_image_get_index_width(cur);
+    cur_h = fig_image_get_index_height(cur);
     cur_transparent = fig_image_get_transparent(cur);
     cur_transparency_index = fig_image_get_transparency_index(cur);
     cur_index_data = fig_image_get_index_data(cur);
     next_transparent = fig_image_get_transparent(next);
     next_transparency_index = fig_image_get_transparency_index(next);
-    next_color_data = fig_image_get_color_data(next);
+    next_canvas_data = fig_image_get_canvas_data(next);
     disposal = fig_image_get_disposal(cur);
 
     switch(disposal) {
@@ -176,9 +179,9 @@ static void dispose_image(fig_animation *self, fig_image *prev, fig_image *cur, 
             size_t i, j;
             for(i = 0; i < cur_h; ++i) {
                 for(j = 0; j < cur_w; ++j) {
-                    size_t k = (cur_y + i) * self->width + (cur_x + j);
-                    if(!cur_transparent || cur_index_data[k] != cur_transparency_index) {
-                        next_color_data[k] = 0;
+                    if(!cur_transparent || cur_index_data[i * cur_w + j] != cur_transparency_index) {
+                        size_t k = (cur_y + i) * self->width + (cur_x + j);
+                        next_canvas_data[k] = 0;
                     }
                 }
             }
@@ -186,15 +189,15 @@ static void dispose_image(fig_animation *self, fig_image *prev, fig_image *cur, 
         }
         case FIG_DISPOSAL_PREVIOUS: {
             size_t i, j;
-            fig_uint32_t *prev_color_data;
+            fig_uint32_t *prev_canvas_data;
 
-            prev_color_data = prev != NULL ? fig_image_get_color_data(prev) : NULL;
+            prev_canvas_data = prev != NULL ? fig_image_get_canvas_data(prev) : NULL;
             
             for(i = 0; i < cur_h; ++i) {
                 for(j = 0; j < cur_w; ++j) {
-                    size_t k = (cur_y + i) * self->width + (cur_x + j);
-                    if(!cur_transparent || cur_index_data[k] != cur_transparency_index) {
-                        next_color_data[k] = prev != NULL ? prev_color_data[k] : 0;
+                    if(!cur_transparent || cur_index_data[i * cur_w + j] != cur_transparency_index) {
+                        size_t k = (cur_y + i) * self->width + (cur_x + j);
+                        next_canvas_data[k] = prev != NULL ? prev_canvas_data[k] : 0;
                     }
                 }
             }
@@ -215,25 +218,28 @@ static void blit_image(fig_animation *self, fig_image *image) {
     fig_bool_t transparent;
     size_t transparency_index;
     fig_uint8_t *index_data;
-    fig_uint32_t *color_data;
+    fig_uint32_t *canvas_data;
     size_t i, j;
 
     palette = fig_image_get_render_palette(image, self);
     color_count = fig_palette_count_colors(palette);
     colors = fig_palette_get_colors(palette);
-    fig_image_get_region(image, &x, &y, &w, &h);
+    x = fig_image_get_index_x(image);
+    y = fig_image_get_index_y(image);
+    w = fig_image_get_index_width(image);
+    h = fig_image_get_index_height(image);
     transparent = fig_image_get_transparent(image);
     transparency_index = fig_image_get_transparency_index(image);
     index_data = fig_image_get_index_data(image);
-    color_data = fig_image_get_color_data(image);
+    canvas_data = fig_image_get_canvas_data(image);
 
     for(i = 0; i < h; ++i) {
         for(j = 0; j < w; ++j) {
-            size_t k = (y + i) * self->width + (x + j);
-            fig_uint8_t index = index_data[k];
+            fig_uint8_t index = index_data[i * w + j];
 
             if(!transparent || index != transparency_index) {
-                color_data[k] = fig_palette_get(palette, index);
+                size_t k = (y + i) * self->width + (x + j);
+                canvas_data[k] = fig_palette_get(palette, index);
             }
         }
     }
@@ -259,7 +265,7 @@ void fig_animation_render(fig_animation *self) {
         if(cur == NULL) {
             clear_image(self, next);
         } else {
-            memcpy(fig_image_get_color_data(next), fig_image_get_color_data(cur), sizeof(fig_uint32_t) * self->width * self->height);
+            memcpy(fig_image_get_canvas_data(next), fig_image_get_canvas_data(cur), sizeof(fig_uint32_t) * self->width * self->height);
             dispose_image(self, prev, cur, next);
         }
 

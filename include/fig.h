@@ -102,14 +102,30 @@ typedef struct fig_image fig_image;
 fig_image *fig_create_image(void);
 /* Get the palette associated with the image. */
 fig_palette *fig_image_get_palette(fig_image *self);
+/* Get the x position of the image index data relative to the canvas. */
+size_t fig_image_get_index_x(fig_image *self);
+/* Get the y position of the image index data relative to the canvas. */
+size_t fig_image_get_index_y(fig_image *self);
+/* Get the width of the image canvas. */
+size_t fig_image_get_index_width(fig_image *self);
+/* Get the height of the image canvas. */
+size_t fig_image_get_index_height(fig_image *self);
 /* Get a raw pointer to image index data. */
 fig_uint8_t *fig_image_get_index_data(fig_image *self);
-/* Get a raw pointer to image BGRA color data. */
-fig_uint32_t *fig_image_get_color_data(fig_image *self);
-/* Get the width of the image. */
+/* Set the x position of the image index data relative to the canvas. */
+void fig_image_set_index_x(fig_image *self, size_t value);
+/* Set the y position of the image index data relative to the canvas. */
+void fig_image_set_index_y(fig_image *self, size_t value);
+/* Resize the canvas area of the image */
+fig_bool_t fig_image_resize_index(fig_image *self, size_t width, size_t height);
+/* Get the width of the image canvas. */
 size_t fig_image_get_canvas_width(fig_image *self);
-/* Get the height of the image. */
+/* Get the height of the image canvas. */
 size_t fig_image_get_canvas_height(fig_image *self);
+/* Get a raw pointer to image BGRA color data. */
+fig_uint32_t *fig_image_get_canvas_data(fig_image *self);
+/* Resize the canvas area of the image */
+fig_bool_t fig_image_resize_canvas(fig_image *self, size_t width, size_t height);
 /* Get the delay to apply on this image. */
 size_t fig_image_get_delay(fig_image *self);
 /* Get the disposal to apply between this image and the next. */
@@ -118,12 +134,6 @@ fig_disposal_t fig_image_get_disposal(fig_image *self);
 fig_bool_t fig_image_get_transparent(fig_image *self);
 /* Get the color that should be transparent during rendering. */
 size_t fig_image_get_transparency_index(fig_image *self);
-/* Get the occupied region of the image. Use NULL for an ignored field. */
-void fig_image_get_region(fig_image *self, size_t *x, size_t *y, size_t *w, size_t *h);
-/* Set the occupied region of the image. */
-void fig_image_set_region(fig_image *self, size_t x, size_t y, size_t w, size_t h);
-/* Resize the canvas area of the image */
-fig_bool_t fig_image_resize_canvas(fig_image *self, size_t width, size_t height);
 /* Set the delay to apply on this image. */
 void fig_image_set_delay(fig_image *self, size_t value);
 /* Set the disposal to apply between this image and the next. */
@@ -219,6 +229,7 @@ fig_bool_t fig_source_seek(fig_source *self, fig_offset_t offset, fig_seek_origi
 fig_offset_t fig_source_tell(fig_source *self);
 /* Free a source created with one of the fig_create_source functions. */
 void fig_source_free(fig_source *self);
+
 
 
 #ifdef FIG_LOAD_GIF

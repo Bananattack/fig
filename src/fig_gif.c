@@ -174,7 +174,7 @@ static fig_bool_t gif_read_palette(fig_source *src, size_t size, fig_palette *pa
     return 1;
 }
 
-static fig_bool_t gif_read_image_data(fig_source *src, gif_image_descriptor *image_desc, fig_image *image) {
+static fig_bool_t gif_read_image_data(fig_source *src, gif_image_descriptor *image_desc, fig_uint8_t *index_data) {
     fig_uint8_t min_code_size;
     fig_uint16_t clear;
     fig_uint16_t eoi;
@@ -194,9 +194,6 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_descriptor *ima
     size_t y;
     fig_uint8_t pass;
     fig_uint8_t y_increment;
-    size_t width;
-    size_t height;
-    fig_uint8_t *index_data;
 
     if(!fig_source_read_u8(src, &min_code_size)) {
         return 0;
@@ -227,13 +224,10 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_descriptor *ima
     bits = 0;
     value = 0;
     first_char = 0;
-    x = image_desc->x;
-    y = image_desc->y;
+    x = 0;
+    y = 0;
     pass = image_desc->interlace ? 3 : 0;
     y_increment = image_desc->interlace ? 8 : 1;
-    width = fig_image_get_canvas_width(image);
-    height = fig_image_get_canvas_height(image);
-    index_data = fig_image_get_index_data(image);
 
     for(;;) {
         if (bits < code_size) {
@@ -319,22 +313,20 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_descriptor *ima
             while(char_stack_size > 0) {
                 fig_uint8_t top;
 
-                if(y - image_desc->y >= image_desc->height) {
+                if(y >= image_desc->height) {
                     break;
                 }
 
                 top = char_stack[--char_stack_size];
-                if(x < width && y < height) {
-                    index_data[y * width + x] = top;
-                }
+                index_data[y * image_desc->width + x] = top;
                 x++;
 
-                if(x - image_desc->x >= image_desc->width) {
-                    x = image_desc->x;
+                if(x >= image_desc->width) {
+                    x = 0;
                     y += y_increment;
-                    if(y - image_desc->y >= image_desc->height && pass > 0) {
+                    if(y >= image_desc->height && pass > 0) {
                         y_increment = 1 << pass;
-                        y = (y_increment >> 1) + image_desc->y;
+                        y = y_increment >> 1;
                         --pass;
                     }
                 }
@@ -412,6 +404,7 @@ fig_animation *fig_load_gif(fig_source *src) {
                 image = fig_animation_add_image(animation);
 
                 if(image == NULL
+                || !fig_image_resize_index(image, image_desc.width, image_desc.height)
                 || !fig_image_resize_canvas(image, screen_desc.width, screen_desc.height)) {
                     return fig_animation_free(animation), NULL;
                 }
@@ -420,15 +413,14 @@ fig_animation *fig_load_gif(fig_source *src) {
                     return fig_animation_free(animation), NULL;
                 }
 
-                /* TODO: clamp region to canvas size */
-
-                fig_image_set_region(image, image_desc.x, image_desc.y, image_desc.width, image_desc.height);
+                fig_image_set_index_x(image, image_desc.x);
+                fig_image_set_index_y(image, image_desc.y);
                 fig_image_set_transparent(image, gfx_ctrl.transparent);
                 fig_image_set_transparency_index(image, gfx_ctrl.transparency_index);
                 fig_image_set_delay(image, gfx_ctrl.delay);
                 fig_image_set_disposal(image, gfx_ctrl.disposal);
 
-                if(!gif_read_image_data(src, &image_desc, image)) {
+                if(!gif_read_image_data(src, &image_desc, fig_image_get_index_data(image))) {
                     return fig_animation_free(animation), NULL;
                 }
 

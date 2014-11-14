@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
             width = fig_image_get_canvas_width(image);
             height = fig_image_get_canvas_height(image);
             image_size = width * height;
-            data = fig_image_get_color_data(image);
+            data = fig_image_get_canvas_data(image);
 
             sprintf(buffer, "out.%03d.ppm", i);
 
