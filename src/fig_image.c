@@ -4,6 +4,8 @@
 typedef struct fig_image {
     size_t x;
     size_t y;
+    size_t w;
+    size_t h;
     size_t canvas_width;
     size_t canvas_height;
     size_t delay;
@@ -13,9 +15,6 @@ typedef struct fig_image {
     size_t transparency_index;
     fig_uint8_t *index_data;
     fig_uint32_t *color_data;
-    size_t render_width;
-    size_t render_height;
-    fig_uint32_t *render_data;
 } fig_image;
 
 fig_image *fig_create_image(void) {
@@ -23,6 +22,8 @@ fig_image *fig_create_image(void) {
     if(self != NULL) {
         self->x = 0;
         self->y = 0;
+        self->w = 0;
+        self->h = 0;
         self->canvas_width = 0;
         self->canvas_height = 0;
         self->delay = 0;
@@ -32,9 +33,6 @@ fig_image *fig_create_image(void) {
         self->transparency_index = 0;
         self->index_data = NULL;
         self->color_data = NULL;
-        self->render_width = 0;
-        self->render_height = 0;
-        self->render_data = NULL;
         if(self->palette == NULL) {
             return fig_image_free(self), NULL;
         }
@@ -52,14 +50,6 @@ fig_uint8_t *fig_image_get_index_data(fig_image *self) {
 
 fig_uint32_t *fig_image_get_color_data(fig_image *self) {
     return self->color_data;
-}
-
-size_t fig_image_get_x(fig_image *self) {
-    return self->x;
-}
-
-size_t fig_image_get_y(fig_image *self) {
-    return self->y;
 }
 
 size_t fig_image_get_canvas_width(fig_image *self) {
@@ -86,12 +76,18 @@ size_t fig_image_get_transparency_index(fig_image *self) {
     return self->transparency_index;
 }
 
-void fig_image_set_x(fig_image *self, size_t value) {
-    self->x = value;
+void fig_image_get_region(fig_image *self, size_t *x, size_t *y, size_t *w, size_t *h) {
+    if(x != NULL) { *x = self->x; }
+    if(y != NULL) { *y = self->y; }
+    if(w != NULL) { *w = self->w; }
+    if(h != NULL) { *h = self->h; }
 }
 
-void fig_image_set_y(fig_image *self, size_t value) {
-    self->y = value;
+void fig_image_set_region(fig_image *self, size_t x, size_t y, size_t w, size_t h) {
+    self->x = x;
+    self->y = y;
+    self->w = w;
+    self->h = h;
 }
 
 fig_bool_t fig_image_resize_canvas(fig_image *self, size_t width, size_t height) {
@@ -137,73 +133,11 @@ void fig_image_set_transparency_index(fig_image *self, size_t value) {
     self->transparency_index = value;
 }
 
- void fig_image_calculate_colors(fig_image *self, fig_animation *animation) {
-     fig_palette *palette;
-     size_t color_count;
-     fig_uint32_t *colors;
-     size_t image_size;
-     fig_uint8_t *index_data;
-     fig_uint32_t *color_data;
-     size_t i;
-
-     if(self->index_data == NULL || self->color_data == NULL) {
-         return;
-     }
-
-     palette = fig_image_get_render_palette(self, animation);
-     color_count = fig_palette_count_colors(palette);
-     colors = fig_palette_get_colors(palette);
-     image_size = self->canvas_width * self->canvas_height;
-     index_data = self->index_data;
-     color_data = self->color_data;
-
-     for(i = 0; i < image_size; ++i) {
-         fig_uint8_t index = index_data[i];
-         FIG_ASSERT(index < color_count);
-         color_data[i] = colors[index];
-         if(self->transparent && index == self->transparency_index) {
-             color_data[i] &= ~0xFF000000;
-         }
-     }
- }
-
-size_t fig_image_get_render_width(fig_image *self) {
-    return self->render_width;
-}
-
-size_t fig_image_get_render_height(fig_image *self) {
-    return self->render_height;
-}
-
-fig_uint32_t *fig_image_get_render_data(fig_image *self) {
-    return self->render_data;
-}
-
 fig_palette *fig_image_get_render_palette(fig_image *self, fig_animation *animation) {
-     if(fig_palette_count_colors(self->palette) > 0) {
+    if(fig_palette_count_colors(self->palette) > 0) {
         return self->palette;
-     } else {
-        return fig_animation_get_palette(animation);
-     }
-}
-
-fig_bool_t fig_image_resize_render(fig_image *self, size_t width, size_t height) {
-    size_t size = width * height;
-    if(size == 0) {
-        free(self->render_data);
-        self->render_data = NULL;
-        return 1;
     } else {
-        fig_uint32_t *render_data;
-        render_data = (fig_uint32_t *) realloc(self->render_data, sizeof(fig_uint32_t) * size);
-        if(render_data == NULL) {
-            return 0;
-        } else {
-            self->render_width = width;
-            self->render_height = height;
-            self->render_data = render_data;
-            return 1;
-        }
+        return fig_animation_get_palette(animation);
     }
 }
 
@@ -214,7 +148,6 @@ void fig_image_free(fig_image *self) {
         }
         free(self->index_data);
         free(self->color_data);
-        free(self->render_data);
     }
     free(self);
 }

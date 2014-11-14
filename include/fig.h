@@ -106,10 +106,6 @@ fig_palette *fig_image_get_palette(fig_image *self);
 fig_uint8_t *fig_image_get_index_data(fig_image *self);
 /* Get a raw pointer to image BGRA color data. */
 fig_uint32_t *fig_image_get_color_data(fig_image *self);
-/* Get the x position of the image. */
-size_t fig_image_get_x(fig_image *self);
-/* Get the y position of the image. */
-size_t fig_image_get_y(fig_image *self);
 /* Get the width of the image. */
 size_t fig_image_get_canvas_width(fig_image *self);
 /* Get the height of the image. */
@@ -122,10 +118,10 @@ fig_disposal_t fig_image_get_disposal(fig_image *self);
 fig_bool_t fig_image_get_transparent(fig_image *self);
 /* Get the color that should be transparent during rendering. */
 size_t fig_image_get_transparency_index(fig_image *self);
-/* Set the x position of the image. */
-void fig_image_set_x(fig_image *self, size_t value);
-/* Set the y position of the image. */
-void fig_image_set_y(fig_image *self, size_t value);
+/* Get the occupied region of the image. Use NULL for an ignored field. */
+void fig_image_get_region(fig_image *self, size_t *x, size_t *y, size_t *w, size_t *h);
+/* Set the occupied region of the image. */
+void fig_image_set_region(fig_image *self, size_t x, size_t y, size_t w, size_t h);
 /* Resize the canvas area of the image */
 fig_bool_t fig_image_resize_canvas(fig_image *self, size_t width, size_t height);
 /* Set the delay to apply on this image. */
@@ -136,18 +132,8 @@ void fig_image_set_disposal(fig_image *self, fig_disposal_t value);
 void fig_image_set_transparent(fig_image *self, fig_bool_t value);
 /* Set the color that should be transparent during rendering. */
 void fig_image_set_transparency_index(fig_image *self, size_t value);
-/* Update the color data by converting the index data into BGRA colors. */
-void fig_image_calculate_colors(fig_image *self, fig_animation *animation);
-/* Get the width of the image's render. */
-size_t fig_image_get_render_width(fig_image *self);
-/* Get the height of the image's render. */
-size_t fig_image_get_render_height(fig_image *self);
-/* Get a raw pointer to rendered BGRA color data. */
-fig_uint32_t *fig_image_get_render_data(fig_image *self);
 /* Get the palette to apply for rendering. */
 fig_palette *fig_image_get_render_palette(fig_image *self, fig_animation *animation);
-/* Resize the overall render of the image */
-fig_bool_t fig_image_resize_render(fig_image *self, size_t width, size_t height);
 /* Free a image created with fig_create_image. */
 void fig_image_free(fig_image *self);
 
@@ -183,7 +169,7 @@ fig_image *fig_animation_insert_image(fig_animation *self, size_t index);
 /* Remove a image from the animation and free it. */
 void fig_animation_remove_image(fig_animation *self, size_t index);
 /* Render all the images offline to get their complete appearance. */
-fig_bool_t fig_animation_render(fig_animation *self);
+void fig_animation_render(fig_animation *self);
 /* Free an animation created with fig_create_animation. */
 void fig_animation_free(fig_animation *self);
 
