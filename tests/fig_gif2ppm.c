@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
     size_t i, j;
     FILE *f;
     fig_source *src;
-    fig_image *image;
+    fig_animation *animation;
 
     if(argc < 2) {
         fputs("Usage: fig_gif2ppm filename\n", stderr);
@@ -21,18 +21,18 @@ int main(int argc, char **argv) {
     }
 
     src = fig_create_file_source(f);
-    image = fig_load_gif(src);
+    animation = fig_load_gif(src);
     fig_source_free(src);
     fclose(f);
-    if(image == NULL) {
+    if(animation == NULL) {
         return 1;
     }
 
     {
         size_t frame_count;
         fig_frame **frames;
-        frame_count = fig_image_count_frames(image);
-        frames = fig_image_get_frames(image);
+        frame_count = fig_animation_count_frames(animation);
+        frames = fig_animation_get_frames(animation);
 
         for(i = 0; i < frame_count; ++i) {
             fig_frame *frame;
@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    fig_image_free(image);
+    fig_animation_free(animation);
 
     return 0;
 }

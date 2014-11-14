@@ -2,7 +2,7 @@
 #include <string.h>
 #include <fig.h>
 
-typedef struct fig_image {
+typedef struct fig_animation {
     size_t width;
     size_t height;
     fig_palette *palette;
@@ -10,10 +10,10 @@ typedef struct fig_image {
     size_t frame_capacity;
     fig_frame **frame_data;
     size_t loop_count;
-} fig_image;
+} fig_animation;
 
-fig_image *fig_create_image(void) {
-    fig_image *self = (fig_image *) malloc(sizeof(fig_image));
+fig_animation *fig_create_animation(void) {
+    fig_animation *self = (fig_animation *) malloc(sizeof(fig_animation));
     if(self != NULL) {
         self->width = 0;
         self->height = 0;
@@ -24,47 +24,47 @@ fig_image *fig_create_image(void) {
         self->loop_count = 0;
 
         if(self->palette == NULL) {
-            return fig_image_free(self), NULL;
+            return fig_animation_free(self), NULL;
         }
     }
     return self;
 }
 
-fig_palette *fig_image_get_palette(fig_image *self) {
+fig_palette *fig_animation_get_palette(fig_animation *self) {
     return self->palette;
 }
 
-size_t fig_image_get_width(fig_image *self) {
+size_t fig_animation_get_width(fig_animation *self) {
     return self->width;
 }
 
-size_t fig_image_get_height(fig_image *self) {
+size_t fig_animation_get_height(fig_animation *self) {
     return self->height;
 }
 
-fig_bool_t fig_image_resize_canvas(fig_image *self, size_t width, size_t height) {
+fig_bool_t fig_animation_resize_canvas(fig_animation *self, size_t width, size_t height) {
     self->width = width;
     self->height = height;
     return 1;
 }
 
-size_t fig_image_count_frames(fig_image *self) {
+size_t fig_animation_count_frames(fig_animation *self) {
     return self->frame_count;
 }
 
-fig_frame **fig_image_get_frames(fig_image *self) {
+fig_frame **fig_animation_get_frames(fig_animation *self) {
     return self->frame_data;
 }
 
-size_t fig_image_get_loop_count(fig_image *self) {
+size_t fig_animation_get_loop_count(fig_animation *self) {
     return self->loop_count;
 }
 
-void fig_image_set_loop_count(fig_image *self, size_t value) {
+void fig_animation_set_loop_count(fig_animation *self, size_t value) {
     self->loop_count = value;
 }
 
-void fig_image_swap_frames(fig_image *self, size_t index_a, size_t index_b) {
+void fig_animation_swap_frames(fig_animation *self, size_t index_a, size_t index_b) {
     fig_frame *temp;
     FIG_ASSERT(index_a < self->frame_count);
     FIG_ASSERT(index_b < self->frame_count);
@@ -74,7 +74,7 @@ void fig_image_swap_frames(fig_image *self, size_t index_a, size_t index_b) {
     self->frame_data[index_b] = temp;
 }
 
-fig_frame *fig_image_add_frame(fig_image *self) {
+fig_frame *fig_animation_add_frame(fig_animation *self) {
     fig_frame *frame;
     FIG_ASSERT(self->frame_capacity >= self->frame_count);
 
@@ -100,13 +100,13 @@ fig_frame *fig_image_add_frame(fig_image *self) {
     return frame;
 }
 
-fig_frame *fig_image_insert_frame(fig_image *self, size_t index) {
+fig_frame *fig_animation_insert_frame(fig_animation *self, size_t index) {
     fig_frame *frame;
     fig_frame **data;
     size_t i;
     FIG_ASSERT(index < self->frame_count + 1);
 
-    frame = fig_image_add_frame(self);
+    frame = fig_animation_add_frame(self);
     if(frame == NULL) {
         return NULL;
     }
@@ -119,7 +119,7 @@ fig_frame *fig_image_insert_frame(fig_image *self, size_t index) {
     return frame;
 }
 
-void fig_animation_remove(fig_image *self, size_t index) {
+void fig_animation_remove(fig_animation *self, size_t index) {
     fig_frame **data;
     size_t i, end;
     FIG_ASSERT(index < self->frame_count);
@@ -132,7 +132,7 @@ void fig_animation_remove(fig_image *self, size_t index) {
     --self->frame_count;
 }
 
-static void clear_frame(fig_image *self, fig_frame *frame) {
+static void clear_frame(fig_animation *self, fig_frame *frame) {
     size_t i;
     size_t size;
     fig_uint32_t color;
@@ -146,7 +146,7 @@ static void clear_frame(fig_image *self, fig_frame *frame) {
     }
 }
 
-static void dispose_frame(fig_image *self, fig_frame *prev, fig_frame *cur, fig_frame *next) {
+static void dispose_frame(fig_animation *self, fig_frame *prev, fig_frame *cur, fig_frame *next) {
     fig_palette *palette;
     size_t color_count;
     fig_uint32_t *colors;
@@ -209,7 +209,7 @@ static void dispose_frame(fig_image *self, fig_frame *prev, fig_frame *cur, fig_
     }
 }
 
-static void blit_frame(fig_image *self, fig_frame *frame) {
+static void blit_frame(fig_animation *self, fig_frame *frame) {
     fig_palette *palette;
     size_t color_count;
     fig_uint32_t *colors;
@@ -243,7 +243,7 @@ static void blit_frame(fig_image *self, fig_frame *frame) {
     }
 }
 
-fig_bool_t fig_image_render(fig_image *self) {
+fig_bool_t fig_animation_render(fig_animation *self) {
     fig_frame **frames;
     size_t frame_count;
     fig_frame *prev;
@@ -284,7 +284,7 @@ fig_bool_t fig_image_render(fig_image *self) {
     return 1;
 }
 
-void fig_image_free(fig_image *self) {
+void fig_animation_free(fig_animation *self) {
     if(self != NULL) {
         if(self->palette != NULL) {
             fig_palette_free(self->palette);

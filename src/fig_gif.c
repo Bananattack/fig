@@ -335,11 +335,11 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_descriptor *ima
     }
 }
 
-fig_image *fig_load_gif(fig_source *src) {
+fig_animation *fig_load_gif(fig_source *src) {
     fig_uint8_t version;
     gif_screen_descriptor screen_desc;
     gif_graphics_control gfx_ctrl;
-    fig_image *image;
+    fig_animation *animation;
     
     if(src == NULL) {
         return NULL;
@@ -353,33 +353,33 @@ fig_image *fig_load_gif(fig_source *src) {
         return NULL;
     }
 
-    image = fig_create_image();
-    if(image == NULL
-    || !fig_image_resize_canvas(image, screen_desc.width, screen_desc.height)) {
-        return fig_image_free(image), NULL;
+    animation = fig_create_animation();
+    if(animation == NULL
+    || !fig_animation_resize_canvas(animation, screen_desc.width, screen_desc.height)) {
+        return fig_animation_free(animation), NULL;
     }
     if(screen_desc.global_colors > 0
-    && !gif_read_palette(src, screen_desc.global_colors, fig_image_get_palette(image))) {
-        return fig_image_free(image), NULL;
+    && !gif_read_palette(src, screen_desc.global_colors, fig_animation_get_palette(animation))) {
+        return fig_animation_free(animation), NULL;
     }
 
     for(;;) {
         fig_uint8_t block_type;
 
         if(!fig_source_read_u8(src, &block_type)) {
-            return fig_image_free(image), NULL;
+            return fig_animation_free(animation), NULL;
         }
         switch(block_type) {
             case GIF_BLOCK_EXTENSION: {
                 fig_uint8_t extension_type;
 
                 if(!fig_source_read_u8(src, &extension_type)) {
-                    return fig_image_free(image), NULL;
+                    return fig_animation_free(animation), NULL;
                 }
                 switch(extension_type) {
                     case GIF_EXT_GRAPHICS_CONTROL: {
                         if(!gif_read_graphics_control(src, &gfx_ctrl)) {
-                            return fig_image_free(image), NULL;
+                            return fig_animation_free(animation), NULL;
                         }
                         break;
                     }
@@ -388,7 +388,7 @@ fig_image *fig_load_gif(fig_source *src) {
                     case GIF_EXT_APPLICATION:*/
                     default: {
                         if(!gif_skip_sub_blocks(src)) {
-                            return fig_image_free(image), NULL;
+                            return fig_animation_free(animation), NULL;
                         }
                         break;
                     }
@@ -401,18 +401,18 @@ fig_image *fig_load_gif(fig_source *src) {
                 
                 memset(&image_desc, 0, sizeof(image_desc));
                 gif_read_image_descriptor(src, &image_desc);
-                frame = fig_image_add_frame(image);
+                frame = fig_animation_add_frame(animation);
 
                 if(frame == NULL
                 || !fig_frame_resize_canvas(frame, image_desc.width, image_desc.height)) {
-                    return fig_image_free(image), NULL;
+                    return fig_animation_free(animation), NULL;
                 }
                 if(image_desc.local_colors > 0
                 && !gif_read_palette(src, image_desc.local_colors, fig_frame_get_palette(frame))) {
-                    return fig_image_free(image), NULL;
+                    return fig_animation_free(animation), NULL;
                 }
                 if(!gif_read_image_data(src, &image_desc, fig_frame_get_index_data(frame))) {
-                    return fig_image_free(image), NULL;
+                    return fig_animation_free(animation), NULL;
                 }
 
                 fig_frame_set_x(frame, image_desc.x);
@@ -421,18 +421,18 @@ fig_image *fig_load_gif(fig_source *src) {
                 fig_frame_set_disposal(frame, gfx_ctrl.disposal);
                 fig_frame_set_transparent(frame, gfx_ctrl.transparent);
                 fig_frame_set_transparency_index(frame, gfx_ctrl.transparency_index);
-                fig_frame_calculate_colors(frame, image);
+                fig_frame_calculate_colors(frame, animation);
 
                 break;
             }
             case GIF_BLOCK_TERMINATOR: {
-                if(!fig_image_render(image)) {
-                    return fig_image_free(image), NULL;
+                if(!fig_animation_render(animation)) {
+                    return fig_animation_free(animation), NULL;
                 }
-                return image;
+                return animation;
             }
             default:
-                return fig_image_free(image), NULL;
+                return fig_animation_free(animation), NULL;
         }
     }
 }

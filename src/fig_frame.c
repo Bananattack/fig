@@ -137,7 +137,7 @@ void fig_frame_set_transparency_index(fig_frame *self, size_t value) {
     self->transparency_index = value;
 }
 
- void fig_frame_calculate_colors(fig_frame *self, fig_image *image) {
+ void fig_frame_calculate_colors(fig_frame *self, fig_animation *animation) {
      fig_palette *palette;
      size_t color_count;
      fig_uint32_t *colors;
@@ -150,7 +150,7 @@ void fig_frame_set_transparency_index(fig_frame *self, size_t value) {
          return;
      }
 
-     palette = fig_frame_get_render_palette(self, image);
+     palette = fig_frame_get_render_palette(self, animation);
      color_count = fig_palette_count_colors(palette);
      colors = fig_palette_get_colors(palette);
      image_size = self->canvas_width * self->canvas_height;
@@ -179,11 +179,11 @@ fig_uint32_t *fig_frame_get_render_data(fig_frame *self) {
     return self->render_data;
 }
 
-fig_palette *fig_frame_get_render_palette(fig_frame *self, fig_image *image) {
+fig_palette *fig_frame_get_render_palette(fig_frame *self, fig_animation *animation) {
      if(fig_palette_count_colors(self->palette) > 0) {
         return self->palette;
      } else {
-        return fig_image_get_palette(image);
+        return fig_animation_get_palette(animation);
      }
 }
 

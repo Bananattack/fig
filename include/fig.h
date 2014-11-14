@@ -1,6 +1,10 @@
 #ifndef FIG_H
 #define FIG_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <fig_config.h>
 
 #include <stdio.h>
@@ -36,7 +40,7 @@ typedef int fig_validate_offset_t[sizeof(fig_offset_t) >= 4 && (fig_offset_t) -1
 
 typedef struct fig_palette fig_palette;
 typedef struct fig_frame fig_frame;
-typedef struct fig_image fig_image;
+typedef struct fig_animation fig_animation;
 typedef struct fig_source_callbacks fig_source_callbacks;
 typedef struct fig_source fig_source;
 
@@ -133,7 +137,7 @@ void fig_frame_set_transparent(fig_frame *self, fig_bool_t value);
 /* Set the color that should be transparent during rendering. */
 void fig_frame_set_transparency_index(fig_frame *self, size_t value);
 /* Update the color data by converting the index data into BGRA colors. */
-void fig_frame_calculate_colors(fig_frame *self, fig_image *image);
+void fig_frame_calculate_colors(fig_frame *self, fig_animation *animation);
 /* Get the width of the frame's render. */
 size_t fig_frame_get_render_width(fig_frame *self);
 /* Get the height of the frame's render. */
@@ -141,7 +145,7 @@ size_t fig_frame_get_render_height(fig_frame *self);
 /* Get a raw pointer to rendered BGRA color data. */
 fig_uint32_t *fig_frame_get_render_data(fig_frame *self);
 /* Get the palette to apply for rendering. */
-fig_palette *fig_frame_get_render_palette(fig_frame *self, fig_image *image);
+fig_palette *fig_frame_get_render_palette(fig_frame *self, fig_animation *animation);
 /* Resize the overall render of the frame */
 fig_bool_t fig_frame_resize_render(fig_frame *self, size_t width, size_t height);
 /* Free a frame created with fig_create_frame. */
@@ -149,39 +153,39 @@ void fig_frame_free(fig_frame *self);
 
 
 
-/* An image containing a background canvas, an animation, and a palette */
-typedef struct fig_image fig_image;
+/* An animation containing a background canvas, frames, and a palette */
+typedef struct fig_animation fig_animation;
 
-/* Return a new image, or NULL on failure. */
-fig_image *fig_create_image(void);
-/* Get the palette associated with the image. */
-fig_palette *fig_image_get_palette(fig_image *self);
-/* Get the width of the image. */
-size_t fig_image_get_width(fig_image *self);
-/* Get the height of the image. */
-size_t fig_image_get_height(fig_image *self);
-/* Resize the canvas area of the image. */
-fig_bool_t fig_image_resize_canvas(fig_image *self, size_t width, size_t height);
-/* Get frame count of the image's animation. */
-size_t fig_image_count_frames(fig_image *self);
+/* Return a new animation, or NULL on failure. */
+fig_animation *fig_create_animation(void);
+/* Get the palette associated with the animation. */
+fig_palette *fig_animation_get_palette(fig_animation *self);
+/* Get the width of the animation. */
+size_t fig_animation_get_width(fig_animation *self);
+/* Get the height of the animation. */
+size_t fig_animation_get_height(fig_animation *self);
+/* Resize the canvas area of the animation. */
+fig_bool_t fig_animation_resize_canvas(fig_animation *self, size_t width, size_t height);
+/* Get frame count of the animation. */
+size_t fig_animation_count_frames(fig_animation *self);
 /* Get a raw pointer to contiguous frame data, possibly NULL. */
-fig_frame **fig_image_get_frames(fig_image *self);
-/* Get loop count of the image's animation. 0 = infinite looping */
-size_t fig_image_get_loop_count(fig_image *self);
-/* Set loop count of the image's animation. 0 = infinite looping */
-void fig_image_set_loop_count(fig_image *self, size_t value);
+fig_frame **fig_animation_get_frames(fig_animation *self);
+/* Get loop count of the animation. 0 = infinite looping */
+size_t fig_animation_get_loop_count(fig_animation *self);
+/* Set loop count of the animation. 0 = infinite looping */
+void fig_animation_set_loop_count(fig_animation *self, size_t value);
 /* Exchange order of two frames at the given indices. 0 <= index < size */
-void fig_image_swap_frames(fig_image *self, size_t index_a, size_t index_b);
-/* Append a new frame to the image, and return it. NULL on failure. */
-fig_frame *fig_image_add_frame(fig_image *self);
+void fig_animation_swap_frames(fig_animation *self, size_t index_a, size_t index_b);
+/* Append a new frame to the animation, and return it. NULL on failure. */
+fig_frame *fig_animation_add_frame(fig_animation *self);
 /* Insert a new frame, and return it. NULL on failure. 0 <= index <= size */
-fig_frame *fig_image_insert_frame(fig_image *self, size_t index);
-/* Remove a frame from the image and free it. */
-void fig_image_remove_frame(fig_image *self, size_t index);
+fig_frame *fig_animation_insert_frame(fig_animation *self, size_t index);
+/* Remove a frame from the animation and free it. */
+void fig_animation_remove_frame(fig_animation *self, size_t index);
 /* Render all the frames offline to get their complete appearance. */
-fig_bool_t fig_image_render(fig_image *self);
-/* Free an image created with fig_create_image. */
-void fig_image_free(fig_image *self);
+fig_bool_t fig_animation_render(fig_animation *self);
+/* Free an animation created with fig_create_animation. */
+void fig_animation_free(fig_animation *self);
 
 
 
@@ -232,7 +236,12 @@ void fig_source_free(fig_source *self);
 
 
 #ifdef FIG_LOAD_GIF
-fig_image *fig_load_gif(fig_source *src);
+fig_animation *fig_load_gif(fig_source *src);
+#endif
+
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif
