@@ -146,7 +146,7 @@ static void clear_image(fig_animation *self, fig_image *image) {
     }
 }
 
-static void dispose_image(fig_animation *self, fig_image *prev, fig_image *cur, fig_image *next) {
+static void dispose_indexed(fig_animation *self, fig_image *prev, fig_image *cur, fig_image *next) {
     fig_palette *palette;
     size_t color_count;
     fig_uint32_t *colors;
@@ -162,13 +162,13 @@ static void dispose_image(fig_animation *self, fig_image *prev, fig_image *cur, 
     palette = fig_image_get_render_palette(next, self);
     color_count = fig_palette_count_colors(palette);
     colors = fig_palette_get_colors(palette);
-    cur_x = fig_image_get_index_x(cur);
-    cur_y = fig_image_get_index_y(cur);
-    cur_w = fig_image_get_index_width(cur);
-    cur_h = fig_image_get_index_height(cur);
+    cur_x = fig_image_get_indexed_x(cur);
+    cur_y = fig_image_get_indexed_y(cur);
+    cur_w = fig_image_get_indexed_width(cur);
+    cur_h = fig_image_get_indexed_height(cur);
     cur_transparent = fig_image_get_transparent(cur);
     cur_transparency_index = fig_image_get_transparency_index(cur);
-    cur_index_data = fig_image_get_index_data(cur);
+    cur_index_data = fig_image_get_indexed_data(cur);
     next_transparent = fig_image_get_transparent(next);
     next_transparency_index = fig_image_get_transparency_index(next);
     next_canvas_data = fig_image_get_canvas_data(next);
@@ -210,7 +210,7 @@ static void dispose_image(fig_animation *self, fig_image *prev, fig_image *cur, 
     }
 }
 
-static void blit_image(fig_animation *self, fig_image *image) {
+static void blit_indexed(fig_animation *self, fig_image *image) {
     fig_palette *palette;
     size_t color_count;
     fig_uint32_t *colors;
@@ -224,13 +224,13 @@ static void blit_image(fig_animation *self, fig_image *image) {
     palette = fig_image_get_render_palette(image, self);
     color_count = fig_palette_count_colors(palette);
     colors = fig_palette_get_colors(palette);
-    x = fig_image_get_index_x(image);
-    y = fig_image_get_index_y(image);
-    w = fig_image_get_index_width(image);
-    h = fig_image_get_index_height(image);
+    x = fig_image_get_indexed_x(image);
+    y = fig_image_get_indexed_y(image);
+    w = fig_image_get_indexed_width(image);
+    h = fig_image_get_indexed_height(image);
     transparent = fig_image_get_transparent(image);
     transparency_index = fig_image_get_transparency_index(image);
-    index_data = fig_image_get_index_data(image);
+    index_data = fig_image_get_indexed_data(image);
     canvas_data = fig_image_get_canvas_data(image);
 
     for(i = 0; i < h; ++i) {
@@ -245,7 +245,7 @@ static void blit_image(fig_animation *self, fig_image *image) {
     }
 }
 
-void fig_animation_render(fig_animation *self) {
+void fig_animation_render_indexed(fig_animation *self) {
     fig_image **images;
     size_t image_count;
     fig_image *prev;
@@ -266,10 +266,10 @@ void fig_animation_render(fig_animation *self) {
             clear_image(self, next);
         } else {
             memcpy(fig_image_get_canvas_data(next), fig_image_get_canvas_data(cur), sizeof(fig_uint32_t) * self->width * self->height);
-            dispose_image(self, prev, cur, next);
+            dispose_indexed(self, prev, cur, next);
         }
 
-        blit_image(self, next);
+        blit_indexed(self, next);
 
         if(cur != NULL) {
             disposal = fig_image_get_disposal(cur);

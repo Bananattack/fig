@@ -404,7 +404,7 @@ fig_animation *fig_load_gif(fig_source *src) {
                 image = fig_animation_add_image(animation);
 
                 if(image == NULL
-                || !fig_image_resize_index(image, image_desc.width, image_desc.height)
+                || !fig_image_resize_indexed(image, image_desc.width, image_desc.height)
                 || !fig_image_resize_canvas(image, screen_desc.width, screen_desc.height)) {
                     return fig_animation_free(animation), NULL;
                 }
@@ -413,21 +413,21 @@ fig_animation *fig_load_gif(fig_source *src) {
                     return fig_animation_free(animation), NULL;
                 }
 
-                fig_image_set_index_x(image, image_desc.x);
-                fig_image_set_index_y(image, image_desc.y);
+                fig_image_set_indexed_x(image, image_desc.x);
+                fig_image_set_indexed_y(image, image_desc.y);
                 fig_image_set_transparent(image, gfx_ctrl.transparent);
                 fig_image_set_transparency_index(image, gfx_ctrl.transparency_index);
                 fig_image_set_delay(image, gfx_ctrl.delay);
                 fig_image_set_disposal(image, gfx_ctrl.disposal);
 
-                if(!gif_read_image_data(src, &image_desc, fig_image_get_index_data(image))) {
+                if(!gif_read_image_data(src, &image_desc, fig_image_get_indexed_data(image))) {
                     return fig_animation_free(animation), NULL;
                 }
 
                 break;
             }
             case GIF_BLOCK_TERMINATOR: {
-                fig_animation_render(animation);
+                fig_animation_render_indexed(animation);
                 return animation;
             }
             default:

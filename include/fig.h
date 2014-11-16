@@ -103,21 +103,21 @@ fig_image *fig_create_image(void);
 /* Get the palette associated with the image. */
 fig_palette *fig_image_get_palette(fig_image *self);
 /* Get the x position of the image index data relative to the canvas. */
-size_t fig_image_get_index_x(fig_image *self);
+size_t fig_image_get_indexed_x(fig_image *self);
 /* Get the y position of the image index data relative to the canvas. */
-size_t fig_image_get_index_y(fig_image *self);
+size_t fig_image_get_indexed_y(fig_image *self);
 /* Get the width of the image canvas. */
-size_t fig_image_get_index_width(fig_image *self);
+size_t fig_image_get_indexed_width(fig_image *self);
 /* Get the height of the image canvas. */
-size_t fig_image_get_index_height(fig_image *self);
+size_t fig_image_get_indexed_height(fig_image *self);
 /* Get a raw pointer to image index data. */
-fig_uint8_t *fig_image_get_index_data(fig_image *self);
+fig_uint8_t *fig_image_get_indexed_data(fig_image *self);
 /* Set the x position of the image index data relative to the canvas. */
-void fig_image_set_index_x(fig_image *self, size_t value);
+void fig_image_set_indexed_x(fig_image *self, size_t value);
 /* Set the y position of the image index data relative to the canvas. */
-void fig_image_set_index_y(fig_image *self, size_t value);
+void fig_image_set_indexed_y(fig_image *self, size_t value);
 /* Resize the canvas area of the image */
-fig_bool_t fig_image_resize_index(fig_image *self, size_t width, size_t height);
+fig_bool_t fig_image_resize_indexed(fig_image *self, size_t width, size_t height);
 /* Get the width of the image canvas. */
 size_t fig_image_get_canvas_width(fig_image *self);
 /* Get the height of the image canvas. */
@@ -179,7 +179,7 @@ fig_image *fig_animation_insert_image(fig_animation *self, size_t index);
 /* Remove a image from the animation and free it. */
 void fig_animation_remove_image(fig_animation *self, size_t index);
 /* Render all the images offline to get their complete appearance. */
-void fig_animation_render(fig_animation *self);
+void fig_animation_render_indexed(fig_animation *self);
 /* Free an animation created with fig_create_animation. */
 void fig_animation_free(fig_animation *self);
 

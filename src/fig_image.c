@@ -2,10 +2,10 @@
 #include <fig.h>
 
 typedef struct fig_image {
-    size_t index_x;
-    size_t index_y;
-    size_t index_width;
-    size_t index_height;
+    size_t indexed_x;
+    size_t indexed_y;
+    size_t indexed_width;
+    size_t indexed_height;
     size_t canvas_width;
     size_t canvas_height;
     size_t delay;
@@ -13,17 +13,17 @@ typedef struct fig_image {
     fig_palette *palette;
     fig_bool_t transparent;
     size_t transparency_index;
-    fig_uint8_t *index_data;
+    fig_uint8_t *indexed_data;
     fig_uint32_t *canvas_data;
 } fig_image;
 
 fig_image *fig_create_image(void) {
     fig_image *self = (fig_image *) malloc(sizeof(fig_image));
     if(self != NULL) {
-        self->index_x = 0;
-        self->index_y = 0;
-        self->index_width = 0;
-        self->index_height = 0;
+        self->indexed_x = 0;
+        self->indexed_y = 0;
+        self->indexed_width = 0;
+        self->indexed_height = 0;
         self->canvas_width = 0;
         self->canvas_height = 0;
         self->delay = 0;
@@ -31,7 +31,7 @@ fig_image *fig_create_image(void) {
         self->palette = fig_create_palette();
         self->transparent = 0;
         self->transparency_index = 0;
-        self->index_data = NULL;
+        self->indexed_data = NULL;
         self->canvas_data = NULL;
         if(self->palette == NULL) {
             return fig_image_free(self), NULL;
@@ -44,51 +44,51 @@ fig_palette *fig_image_get_palette(fig_image *self) {
     return self->palette;
 }
 
-size_t fig_image_get_index_x(fig_image *self) {
-    return self->index_x;
+size_t fig_image_get_indexed_x(fig_image *self) {
+    return self->indexed_x;
 }
 
-size_t fig_image_get_index_y(fig_image *self) {
-    return self->index_y;
+size_t fig_image_get_indexed_y(fig_image *self) {
+    return self->indexed_y;
 }
 
-size_t fig_image_get_index_width(fig_image *self) {
-    return self->index_width;
+size_t fig_image_get_indexed_width(fig_image *self) {
+    return self->indexed_width;
 }
 
-size_t fig_image_get_index_height(fig_image *self) {
-    return self->index_height;
+size_t fig_image_get_indexed_height(fig_image *self) {
+    return self->indexed_height;
 }
 
-fig_uint8_t *fig_image_get_index_data(fig_image *self) {
-    return self->index_data;
+fig_uint8_t *fig_image_get_indexed_data(fig_image *self) {
+    return self->indexed_data;
 }
 
-void fig_image_set_index_x(fig_image *self, size_t value) {
-    self->index_x = value;
+void fig_image_set_indexed_x(fig_image *self, size_t value) {
+    self->indexed_x = value;
 }
 
-void fig_image_set_index_y(fig_image *self, size_t value) {
-    self->index_y = value;
+void fig_image_set_indexed_y(fig_image *self, size_t value) {
+    self->indexed_y = value;
 }
 
-fig_bool_t fig_image_resize_index(fig_image *self, size_t width, size_t height) {
+fig_bool_t fig_image_resize_indexed(fig_image *self, size_t width, size_t height) {
     size_t size = width * height;
     if(size == 0) {
-        free(self->index_data);
-        self->index_data = NULL;
-        self->index_width = width;
-        self->index_height = height;
+        free(self->indexed_data);
+        self->indexed_data = NULL;
+        self->indexed_width = width;
+        self->indexed_height = height;
         return 1;
     } else {
         fig_uint8_t *index_data;
-        index_data = (fig_uint8_t *) realloc(self->index_data, sizeof(fig_uint8_t) * size);
+        index_data = (fig_uint8_t *) realloc(self->indexed_data, sizeof(fig_uint8_t) * size);
         if(index_data == NULL) {
             return 0;
         } else {
-            self->index_width = width;
-            self->index_height = height;
-            self->index_data = index_data;
+            self->indexed_width = width;
+            self->indexed_height = height;
+            self->indexed_data = index_data;
             return 1;
         }
     }
@@ -173,7 +173,7 @@ void fig_image_free(fig_image *self) {
         if(self->palette != NULL) {
             fig_palette_free(self->palette);
         }
-        free(self->index_data);
+        free(self->indexed_data);
         free(self->canvas_data);
     }
     free(self);
