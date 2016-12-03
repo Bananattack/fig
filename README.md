@@ -10,14 +10,13 @@ Fig is an image and animation library written in C. (VERY work-in-progress)
 
 Supports:
 
-* Graphics Interchange Format (.gif)
+* Graphics Interchange Format (.gif) - Decoding, but not encoding.
 
 Compiling
 ---------
 
-So far this was written on Windows with Visual Studio 2013, hasn't been tested on other platforms / compilers.
-
-* The solution for Visual Studio 2013 is in the `vc/` folder.
+* Visual Studio (Windows): Make sure a recent version of Visual Studio is installed. The solution for Visual Studio 2013 is in the `vc/` folder. Open and Build Solution, or add the vcproj into an already existing solution and adjust as necessary.
+* Makefile (Mac / Linux / Windows (MinGW + GnuWin32) / Cygwin / etc): Make sure GNU Make, and either GCC or Clang is installed. Run `make` in the base directory of the repository.
 
 License
 -------
