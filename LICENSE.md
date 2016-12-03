@@ -1,6 +1,6 @@
 The source code for fig is released under the MIT license:
 
-    Copyright © 2014 Andrew G. Crowell
+    Copyright © 2016 Andrew G. Crowell
 
     Permission is hereby granted, free of charge, to any person obtaining a copy of
     this software and associated documentation files (the "Software"), to deal in
