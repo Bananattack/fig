@@ -1,10 +1,10 @@
 #include <stdlib.h>
 #include <fig.h>
 
-typedef struct fig_palette {
+struct fig_palette {
     size_t size;
     fig_uint32_t *data;
-} fig_palette;
+};
 
 fig_palette *fig_create_palette(void) {
     fig_palette *self = (fig_palette *) malloc(sizeof(fig_palette));

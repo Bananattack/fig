@@ -37,3 +37,4 @@ vc/tests/[Rr]elease
 *.swo
 *~
 vc/ipch
+obj/

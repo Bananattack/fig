@@ -16,33 +16,42 @@ extern "C" {
 
 #ifndef FIG_TYPEDEFS
     #define FIG_TYPEDEFS
-    #if defined(_MSC_VER)
-        typedef unsigned __int8 fig_uint8_t;
-        typedef unsigned __int16 fig_uint16_t;
-        typedef unsigned __int32 fig_uint32_t;
-        typedef __int64 fig_offset_t;
-        typedef char fig_bool_t;
-    #elif __STDC_VERSION__ >= 199901L
+
+    #include <stddef.h>
+
+    #if (defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) || (defined(_MSC_VER) && _MSC_VER >= 1600)
         #include <stdint.h>
-        #include <stdbool.h>
+
         typedef uint8_t fig_uint8_t;
         typedef uint16_t fig_uint16_t;
         typedef uint32_t fig_uint32_t;
-        typedef int64_t fig_offset_t;
+    #elif defined(_MSC_VER)
+        typedef unsigned __int8 fig_uint8_t;
+        typedef unsigned __int16 fig_uint16_t;
+        typedef unsigned __int32 fig_uint32_t;
+    #else
+        typedef unsigned char fig_uint8_t;
+        typedef unsigned short fig_uint16_t;
+        typedef unsigned int fig_uint32_t;
+    #endif
+
+    #if (defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) || (defined(_MSC_VER) && _MSC_VER >= 1600)
+        #include <stdbool.h>
         typedef bool fig_bool_t;
+    #else
+        typedef char fig_bool_t;
     #endif
 #endif
 
-typedef int fig_validate_uint8_t[sizeof(fig_uint8_t) == 1 && (fig_uint8_t) -1 >= 0 ? 1 : -1];
-typedef int fig_validate_uint16_t[sizeof(fig_uint16_t) == 2 && (fig_uint16_t) -1 >= 0 ? 1 : -1];
-typedef int fig_validate_uint32_t[sizeof(fig_uint32_t) == 4 && (fig_uint32_t) -1 >= 0 ? 1 : -1];
-typedef int fig_validate_offset_t[sizeof(fig_offset_t) >= 4 && (fig_offset_t) -1 < 0 ? 1 : -1];
+typedef int fig_assert_sizeof_uint8_t_is_1_byte[sizeof(fig_uint8_t) == 1 && (fig_uint8_t) -1 >= 0 ? 1 : -1];
+typedef int fig_assert_sizeof_uint16_t_is_2_bytes[sizeof(fig_uint16_t) == 2 && (fig_uint16_t) -1 >= 0 ? 1 : -1];
+typedef int fig_assert_sizeof_uint32_t_is_4_bytes[sizeof(fig_uint32_t) == 4 && (fig_uint32_t) -1 >= 0 ? 1 : -1];
 
 typedef struct fig_palette fig_palette;
 typedef struct fig_image fig_image;
 typedef struct fig_animation fig_animation;
-typedef struct fig_source_callbacks fig_source_callbacks;
 typedef struct fig_source fig_source;
+typedef struct fig_source_callbacks fig_source_callbacks;
 
 
 
@@ -61,8 +70,6 @@ typedef enum fig_disposal_t {
     FIG_DISPOSAL_COUNT
 } fig_disposal_t;
 
-
-
 /* An enumeration of possible seek origins for sources. */
 typedef enum fig_seek_origin_t {
     /* Seek forward from beginning of file. */
@@ -70,13 +77,14 @@ typedef enum fig_seek_origin_t {
     /* Seek relative to current offset in file. */
     FIG_SEEK_CUR = SEEK_CUR,
     /* Seek backward from end of file. */
-    FIG_SEEK_END = SEEK_END,
+    FIG_SEEK_END = SEEK_END
 } fig_seek_origin_t;
 
 
 
+
 /* A palette of BRGA colors. */
-typedef struct fig_palette fig_palette;
+struct fig_palette;
 
 /* Return a new palette, or NULL on failure. */
 fig_palette *fig_create_palette(void);
@@ -96,7 +104,7 @@ void fig_palette_free(fig_palette *self);
 
 
 /* An image containing BGRA color data and possibly paletted index data. */
-typedef struct fig_image fig_image;
+struct fig_image;
 
 /* Return a new image, or NULL on failure. */
 fig_image *fig_create_image(void);
@@ -150,7 +158,7 @@ void fig_image_free(fig_image *self);
 
 
 /* An animation containing a multiple images and a palette */
-typedef struct fig_animation fig_animation;
+struct fig_animation;
 
 /* Return a new animation, or NULL on failure. */
 fig_animation *fig_create_animation(void);
@@ -185,27 +193,25 @@ void fig_animation_free(fig_animation *self);
 
 
 
+/* A source used for reading binary data. */
+struct fig_source;
+
 /* An interface for defining a binary data source from which files are read. */
-typedef struct fig_source_callbacks {
+struct fig_source_callbacks {
     /* Read up to count elements of given size into dest, and return the
     number of elements actually read. */
     size_t (*read)(void *ud, void *dest, size_t size, size_t count);
 
     /* Attempt to seek to a position within the stream, and return whether
     this was successful. */
-    fig_bool_t (*seek)(void *ud, fig_offset_t offset, fig_seek_origin_t whence);
+    fig_bool_t (*seek)(void *ud, ptrdiff_t offset, fig_seek_origin_t whence);
 
     /* Tell the current position in the source. */
-    fig_offset_t (*tell)(void *ud);
+    ptrdiff_t (*tell)(void *ud);
 
     /* Free any resources owned by this source. */
     void (*cleanup)(void *ud);
-} fig_source_callbacks;
-
-
-
-/* A source used for reading binary data. */
-typedef struct fig_source fig_source;
+};
 
 /* Make a source that has callbacks to read opaque userdata. NULL on failure */
 fig_source *fig_create_source(fig_source_callbacks callbacks, void *userdata);
@@ -224,9 +230,9 @@ fig_bool_t fig_source_read_le_u16(fig_source *self, fig_uint16_t *dest);
 fig_bool_t fig_source_read_le_u32(fig_source *self, fig_uint32_t *dest);
 /* Attempt to seek to a position within the stream, and return whether
 this was successful. */
-fig_bool_t fig_source_seek(fig_source *self, fig_offset_t offset, fig_seek_origin_t whence);
+fig_bool_t fig_source_seek(fig_source *self, ptrdiff_t offset, fig_seek_origin_t whence);
 /* Tell the current position in the source. */
-fig_offset_t fig_source_tell(fig_source *self);
+ptrdiff_t fig_source_tell(fig_source *self);
 /* Free a source created with one of the fig_create_source functions. */
 void fig_source_free(fig_source *self);
 

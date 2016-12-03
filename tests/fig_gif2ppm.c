@@ -45,12 +45,12 @@ int main(int argc, char **argv) {
             image_size = width * height;
             data = fig_image_get_canvas_data(image);
 
-            sprintf(buffer, "out.%03d.ppm", i);
+            sprintf(buffer, "out.%03d.ppm", (int) i);
 
             f = fopen(buffer, "wb");
 
             if(f != NULL) {
-                fprintf(f, "P6 %d %d 255 ", width, height);
+                fprintf(f, "P6 %d %d 255 ", (int) width, (int) height);
                 for(j = 0; j < image_size; ++j) {
                     fig_uint8_t out[3];
 

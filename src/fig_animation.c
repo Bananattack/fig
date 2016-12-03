@@ -2,7 +2,7 @@
 #include <string.h>
 #include <fig.h>
 
-typedef struct fig_animation {
+struct fig_animation {
     size_t width;
     size_t height;
     fig_palette *palette;
@@ -10,7 +10,7 @@ typedef struct fig_animation {
     size_t image_capacity;
     fig_image **image_data;
     size_t loop_count;
-} fig_animation;
+};
 
 fig_animation *fig_create_animation(void) {
     fig_animation *self = (fig_animation *) malloc(sizeof(fig_animation));
@@ -147,21 +147,13 @@ static void clear_image(fig_animation *self, fig_image *image) {
 }
 
 static void dispose_indexed(fig_animation *self, fig_image *prev, fig_image *cur, fig_image *next) {
-    fig_palette *palette;
-    size_t color_count;
-    fig_uint32_t *colors;
     size_t cur_x, cur_y, cur_w, cur_h;
     fig_bool_t cur_transparent;
     size_t cur_transparency_index;
     fig_uint8_t *cur_index_data;
-    fig_bool_t next_transparent;
-    size_t next_transparency_index;
     fig_uint32_t *next_canvas_data;
     fig_disposal_t disposal;
 
-    palette = fig_image_get_render_palette(next, self);
-    color_count = fig_palette_count_colors(palette);
-    colors = fig_palette_get_colors(palette);
     cur_x = fig_image_get_indexed_x(cur);
     cur_y = fig_image_get_indexed_y(cur);
     cur_w = fig_image_get_indexed_width(cur);
@@ -169,8 +161,6 @@ static void dispose_indexed(fig_animation *self, fig_image *prev, fig_image *cur
     cur_transparent = fig_image_get_transparent(cur);
     cur_transparency_index = fig_image_get_transparency_index(cur);
     cur_index_data = fig_image_get_indexed_data(cur);
-    next_transparent = fig_image_get_transparent(next);
-    next_transparency_index = fig_image_get_transparency_index(next);
     next_canvas_data = fig_image_get_canvas_data(next);
     disposal = fig_image_get_disposal(cur);
 
@@ -212,8 +202,6 @@ static void dispose_indexed(fig_animation *self, fig_image *prev, fig_image *cur
 
 static void blit_indexed(fig_animation *self, fig_image *image) {
     fig_palette *palette;
-    size_t color_count;
-    fig_uint32_t *colors;
     size_t x, y, w, h;
     fig_bool_t transparent;
     size_t transparency_index;
@@ -222,8 +210,6 @@ static void blit_indexed(fig_animation *self, fig_image *image) {
     size_t i, j;
 
     palette = fig_image_get_render_palette(image, self);
-    color_count = fig_palette_count_colors(palette);
-    colors = fig_palette_get_colors(palette);
     x = fig_image_get_indexed_x(image);
     y = fig_image_get_indexed_y(image);
     w = fig_image_get_indexed_width(image);

@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <fig.h>
 
-typedef struct fig_image {
+struct fig_image {
     size_t indexed_x;
     size_t indexed_y;
     size_t indexed_width;
@@ -15,7 +15,7 @@ typedef struct fig_image {
     size_t transparency_index;
     fig_uint8_t *indexed_data;
     fig_uint32_t *canvas_data;
-} fig_image;
+};
 
 fig_image *fig_create_image(void) {
     fig_image *self = (fig_image *) malloc(sizeof(fig_image));

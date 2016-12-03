@@ -3,10 +3,10 @@
 #include <string.h>
 #include <fig.h>
 
-typedef struct fig_source {
+struct fig_source {
     void *userdata;
     fig_source_callbacks callbacks;
-} fig_source;
+};
 
 fig_source *fig_create_source(fig_source_callbacks callbacks, void *userdata) {
     fig_source *self = (fig_source *) malloc(sizeof(fig_source));
@@ -22,12 +22,12 @@ static size_t file_read(void *ud, void *dest, size_t size, size_t count) {
     return fread(dest, size, count, (FILE *) ud);
 }
 
-static fig_bool_t file_seek(void *ud, fig_offset_t offset, fig_seek_origin_t whence) {
+static fig_bool_t file_seek(void *ud, ptrdiff_t offset, fig_seek_origin_t whence) {
     return !fseek((FILE *) ud, (long) offset, (int) whence);
 }
 
-static fig_offset_t file_tell(void *ud) {
-    return (fig_offset_t) ftell((FILE *) ud);
+static ptrdiff_t file_tell(void *ud) {
+    return (ptrdiff_t) ftell((FILE *) ud);
 }
 
 static const fig_source_callbacks file_source_cb = {
@@ -65,7 +65,7 @@ static size_t memfile_read(void *ud, void *dest, size_t size, size_t count) {
     return count;
 }
 
-static fig_bool_t memfile_seek(void *ud, fig_offset_t offset, fig_seek_origin_t whence) {
+static fig_bool_t memfile_seek(void *ud, ptrdiff_t offset, fig_seek_origin_t whence) {
     memfile *mf = (memfile *) ud;
     switch (whence) {
         case FIG_SEEK_SET:
@@ -104,8 +104,8 @@ static fig_bool_t memfile_seek(void *ud, fig_offset_t offset, fig_seek_origin_t 
     return 1;
 }
 
-static fig_offset_t memfile_tell(void *ud) {
-    return (fig_offset_t) ((memfile *) ud)->position;
+static ptrdiff_t memfile_tell(void *ud) {
+    return (ptrdiff_t) ((memfile *) ud)->position;
 }
 
 static void memfile_cleanup(void *ud) {
@@ -153,14 +153,14 @@ size_t fig_source_read(fig_source *self, void *dest, size_t size, size_t count) 
     return 0;
 }
 
-fig_bool_t fig_source_seek(fig_source *self, fig_offset_t offset, fig_seek_origin_t whence) {
+fig_bool_t fig_source_seek(fig_source *self, ptrdiff_t offset, fig_seek_origin_t whence) {
     if(self->callbacks.seek) {
         return self->callbacks.seek(self->userdata, offset, whence);
     }
     return 0;
 }
 
-fig_offset_t fig_source_tell(fig_source *self) {
+ptrdiff_t fig_source_tell(fig_source *self) {
     if(self->callbacks.tell) {
         return self->callbacks.tell(self->userdata);
     }
