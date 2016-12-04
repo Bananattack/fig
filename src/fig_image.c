@@ -1,7 +1,7 @@
-#include <stdlib.h>
 #include <fig.h>
 
 struct fig_image {
+    fig_state *state;
     size_t indexed_x;
     size_t indexed_y;
     size_t indexed_width;
@@ -17,27 +17,33 @@ struct fig_image {
     fig_uint32_t *canvas_data;
 };
 
-fig_image *fig_create_image(void) {
-    fig_image *self = (fig_image *) malloc(sizeof(fig_image));
-    if(self != NULL) {
-        self->indexed_x = 0;
-        self->indexed_y = 0;
-        self->indexed_width = 0;
-        self->indexed_height = 0;
-        self->canvas_width = 0;
-        self->canvas_height = 0;
-        self->delay = 0;
-        self->disposal = FIG_DISPOSAL_UNSPECIFIED;
-        self->palette = fig_create_palette();
-        self->transparent = 0;
-        self->transparency_index = 0;
-        self->indexed_data = NULL;
-        self->canvas_data = NULL;
-        if(self->palette == NULL) {
-            return fig_image_free(self), NULL;
+fig_image *fig_create_image(fig_state *state) {
+    if(state != NULL) {
+        fig_image *self = (fig_image *) fig_state_get_allocator(state)(fig_state_get_userdata(state), NULL, 0, sizeof(fig_image));
+        if(self != NULL) {
+            self->state = state;
+            self->indexed_x = 0;
+            self->indexed_y = 0;
+            self->indexed_width = 0;
+            self->indexed_height = 0;
+            self->canvas_width = 0;
+            self->canvas_height = 0;
+            self->delay = 0;
+            self->disposal = FIG_DISPOSAL_UNSPECIFIED;
+            self->palette = fig_create_palette(state);
+            if(self->palette == NULL) {
+                return fig_image_free(self), NULL;
+            }            
+            self->transparent = 0;
+            self->transparency_index = 0;
+            self->indexed_data = NULL;
+            self->canvas_data = NULL;
+        } else {
+            fig_state_set_error_allocation_failed(state);
         }
+        return self;
     }
-    return self;
+    return NULL;
 }
 
 fig_palette *fig_image_get_palette(fig_image *self) {
@@ -73,16 +79,18 @@ void fig_image_set_indexed_y(fig_image *self, size_t value) {
 }
 
 fig_bool_t fig_image_resize_indexed(fig_image *self, size_t width, size_t height) {
-    size_t size = width * height;
-    if(size == 0) {
-        free(self->indexed_data);
+    size_t old_size = self->indexed_width * self->indexed_height;
+    size_t new_size = width * height;    
+    if(new_size == 0) {
+        fig_state_get_allocator(self->state)(fig_state_get_userdata(self->state), self->indexed_data, old_size, 0);
         self->indexed_data = NULL;
-        self->indexed_width = width;
-        self->indexed_height = height;
+        self->indexed_width = 0;
+        self->indexed_height = 0;
         return 1;
     } else {
         fig_uint8_t *index_data;
-        index_data = (fig_uint8_t *) realloc(self->indexed_data, sizeof(fig_uint8_t) * size);
+        index_data = (fig_uint8_t *) fig_state_get_allocator(self->state)(fig_state_get_userdata(self->state),
+            self->indexed_data, old_size, new_size);
         if(index_data == NULL) {
             return 0;
         } else {
@@ -107,16 +115,18 @@ fig_uint32_t *fig_image_get_canvas_data(fig_image *self) {
 }
 
 fig_bool_t fig_image_resize_canvas(fig_image *self, size_t width, size_t height) {
-    size_t size = width * height;
-    if(size == 0) {
-        free(self->canvas_data);
+    size_t old_size = self->canvas_width * self->canvas_height;
+    size_t new_size = width * height;
+    if(new_size == 0) {
+        fig_state_get_allocator(self->state)(fig_state_get_userdata(self->state), self->canvas_data, sizeof(fig_uint32_t) * old_size, 0);
         self->canvas_data = NULL;
-        self->canvas_width = width;
-        self->canvas_height = height;
+        self->canvas_width = 0;
+        self->canvas_height = 0;
         return 1;
     } else {
         fig_uint32_t *canvas_data;
-        canvas_data = (fig_uint32_t *) realloc(self->canvas_data, sizeof(fig_uint32_t) * size);
+        canvas_data = (fig_uint32_t *) fig_state_get_allocator(self->state)(fig_state_get_userdata(self->state),
+            self->canvas_data, sizeof(fig_uint32_t) * old_size, sizeof(fig_uint32_t) * new_size);
         if(canvas_data == NULL) {
             return 0;
         } else {
@@ -170,11 +180,15 @@ fig_palette *fig_image_get_render_palette(fig_image *self, fig_animation *animat
 
 void fig_image_free(fig_image *self) {
     if(self != NULL) {
+        fig_allocator_t alloc = fig_state_get_allocator(self->state);
+        void *ud = fig_state_get_userdata(self->state);     
+
         if(self->palette != NULL) {
             fig_palette_free(self->palette);
         }
-        free(self->indexed_data);
-        free(self->canvas_data);
+   
+        alloc(ud, self->indexed_data, self->indexed_width * self->indexed_height, 0);
+        alloc(ud, self->canvas_data, sizeof(fig_uint32_t) * self->canvas_width * self->canvas_height, 0);
+        alloc(ud, self, sizeof(fig_image), 0);
     }
-    free(self);
 }

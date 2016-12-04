@@ -47,16 +47,44 @@ typedef int fig_assert_sizeof_uint8_t_is_1_byte[sizeof(fig_uint8_t) == 1 && (fig
 typedef int fig_assert_sizeof_uint16_t_is_2_bytes[sizeof(fig_uint16_t) == 2 && (fig_uint16_t) -1 >= 0 ? 1 : -1];
 typedef int fig_assert_sizeof_uint32_t_is_4_bytes[sizeof(fig_uint32_t) == 4 && (fig_uint32_t) -1 >= 0 ? 1 : -1];
 
+typedef struct fig_state fig_state;
 typedef struct fig_palette fig_palette;
 typedef struct fig_image fig_image;
 typedef struct fig_animation fig_animation;
 typedef struct fig_source fig_source;
 typedef struct fig_source_callbacks fig_source_callbacks;
 
-
+/* A function that allocates and manages blocks of memory.
+ *
+ * ud: a piece of userdata that can be used by the allocator.
+ * ptr: pointer to the block of memory to be reallocated.
+ * old_size: the size of the block before reallocation.
+ * new_size: the desired size after reallocation.
+ *
+ * When new_size != 0, the function returns a valid pointer on success,
+ * and NULL on failure. On failure, ptr is still valid, if it was a valid
+ * pointer before the call.
+ *
+ * When ptr == NULL && old_size == 0 && new_size != 0, then the caller is
+ * indicating that the memory block doesn't exist yet. The allocator should
+ * allocate a block of the request sized new_size and return a pointer to
+ * its start address.
+ *
+ * When ptr != NULL && old_size != 0 && new_size != 0, then the caller is
+ * requesting that the given memory block located at ptr should be resized from
+ * old_size to new_size.
+ *
+ * When (ptr != NULL && old_size == 0) || (ptr == NULL && old_size != 0),
+ * the function should return NULL, because the block specified is invalid.
+ * 
+ * When new_size == 0, the memory at the specified ptr should be freed,
+ * and the allocator should always return NULL. If the ptr is already NULL,
+ * freeing it should have no effect (like free(NULL)) and just return NULL.
+ */
+typedef void *(*fig_allocator_t)(void *ud, void *ptr, size_t old_size, size_t new_size);
 
 /* An enumeration of possible frame disposal modes, performed
-after this frame is finished, but before the next one is drawn. */
+   after this frame is finished, but before the next one is drawn. */
 typedef enum fig_disposal_t {
     /* Replace this frame. */
     FIG_DISPOSAL_UNSPECIFIED,
@@ -82,12 +110,44 @@ typedef enum fig_seek_origin_t {
 
 
 
+/* A collection of shared state used by the library.
+ * Each state has an allocator, an error message on failure, and potentially
+ * other internal state.
+ * States should not be freed until every object created with them is freed. */
+struct fig_state;
+
+/* Create and return a state structure. Returns NULL on failure */
+fig_state *fig_create_state();
+/* Create and return a state structure, using a custom allocator.
+ * Returns NULL on failure.
+ * The userdata is passed to the allocator for each allocation by the allocator.
+ * The allocator + userdata are used to create the state and all future
+ * allocations that use the state. */
+fig_state *fig_create_custom_state(fig_allocator_t alloc, void *ud);
+/* Returns an error message for the most recent failure on this state.
+ * Returns NULL if there is no error information.
+ * Operations that succeed are not required to change the error.
+ * (It is recommended to check this only when a failure has just occurred,
+ * or to set error to NULL when it is significant) */
+const char *fig_state_get_error();
+/* Set the error message associated with the state. */
+void fig_state_set_error(fig_state *self, const char *message);
+/* Set the error message of the state to indicate allocation failure. */
+void fig_state_set_error_allocation_failed(fig_state *self);
+/* Get the allocator function associated with this state. */
+fig_allocator_t fig_state_get_allocator(fig_state *self);
+/* Get the userdata associated with this state. */
+void *fig_state_get_userdata(fig_state *self);
+/* Free a state created with one of the fig_create_state functions. */
+void fig_state_free(fig_state *self);
+
+
 
 /* A palette of BRGA colors. */
 struct fig_palette;
 
-/* Return a new palette, or NULL on failure. */
-fig_palette *fig_create_palette(void);
+/* Create and return a new palette. Returns NULL on failure. */
+fig_palette *fig_create_palette(fig_state *state);
 /* Get the size of the palette. */
 size_t fig_palette_count_colors(fig_palette *self);
 /* Get a raw pointer to contiguous BRGA color data, possibly NULL. */
@@ -106,8 +166,8 @@ void fig_palette_free(fig_palette *self);
 /* An image containing BGRA color data and possibly paletted index data. */
 struct fig_image;
 
-/* Return a new image, or NULL on failure. */
-fig_image *fig_create_image(void);
+/* Create and return a new image. Returns NULL on failure. */
+fig_image *fig_create_image(fig_state *state);
 /* Get the palette associated with the image. */
 fig_palette *fig_image_get_palette(fig_image *self);
 /* Get the x position of the image index data relative to the canvas. */
@@ -151,7 +211,7 @@ void fig_image_set_transparent(fig_image *self, fig_bool_t value);
 /* Set the color that should be transparent during rendering. */
 void fig_image_set_transparency_index(fig_image *self, size_t value);
 /* Get the palette to apply for rendering. */
-fig_palette *fig_image_get_render_palette(fig_image *self, fig_animation *animation);
+fig_palette *fig_image_get_render_palette(fig_image *self, fig_animation *anim);
 /* Free a image created with fig_create_image. */
 void fig_image_free(fig_image *self);
 
@@ -160,8 +220,8 @@ void fig_image_free(fig_image *self);
 /* An animation containing a multiple images and a palette */
 struct fig_animation;
 
-/* Return a new animation, or NULL on failure. */
-fig_animation *fig_create_animation(void);
+/* Create and return a new animation. Returns NULL on failure. */
+fig_animation *fig_create_animation(fig_state *state);
 /* Get the palette associated with the animation. */
 fig_palette *fig_animation_get_palette(fig_animation *self);
 /* Get the width of the animation. */
@@ -199,28 +259,33 @@ struct fig_source;
 /* An interface for defining a binary data source from which files are read. */
 struct fig_source_callbacks {
     /* Read up to count elements of given size into dest, and return the
-    number of elements actually read. */
+     * number of elements actually read. */
     size_t (*read)(void *ud, void *dest, size_t size, size_t count);
 
     /* Attempt to seek to a position within the stream, and return whether
-    this was successful. */
+       this was successful. */
     fig_bool_t (*seek)(void *ud, ptrdiff_t offset, fig_seek_origin_t whence);
 
     /* Tell the current position in the source. */
     ptrdiff_t (*tell)(void *ud);
 
-    /* Free any resources owned by this source. */
+    /* Free any resources owned by this source userdata. */
     void (*cleanup)(void *ud);
 };
 
-/* Make a source that has callbacks to read opaque userdata. NULL on failure */
-fig_source *fig_create_source(fig_source_callbacks callbacks, void *userdata);
-/* Return a source that uses a file handle to read data. NULL on failure */
-fig_source *fig_create_file_source(FILE *f);
-/* Return a source that uses a memory buffer to read data. NULL on failure */
-fig_source *fig_create_memory_source(void *data, size_t length);
-/* Read up to count elements of given size into dest, and return the
-number of elements actually read. */
+/* Make a source that has callbacks to read the provided opaque userdata.
+ * Returns NULL on failure. */
+fig_source *fig_create_source(fig_state *state, fig_source_callbacks callbacks, void *ud);
+/* Create and return a source that uses a file handle to read data.
+ * The file is user-owned, and is left open after the source is freed.
+ * Returns NULL on failure. */
+fig_source *fig_create_file_source(fig_state *state, FILE *f);
+/* Create and return a source that uses a memory buffer to read data.
+ * The data is user-owned, and is not freed when the source is freed.
+ * Returns NULL on failure. */
+fig_source *fig_create_memory_source(fig_state *state, void *data, size_t length);
+/* Read up to count elements of given size into dest.
+   Return the number of elements actually read. */
 size_t fig_source_read(fig_source *self, void *dest, size_t size, size_t count);
 /* Read a uint8_t value into the dest, return whether it succeeeded. */
 fig_bool_t fig_source_read_u8(fig_source *self, fig_uint8_t *dest);
@@ -239,7 +304,7 @@ void fig_source_free(fig_source *self);
 
 
 #ifdef FIG_LOAD_GIF
-fig_animation *fig_load_gif(fig_source *src);
+fig_animation *fig_load_gif(fig_state *state, fig_source *src);
 #endif
 
 

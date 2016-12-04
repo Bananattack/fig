@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include <string.h>
 #include <fig.h>
 
@@ -174,7 +173,11 @@ static fig_bool_t gif_read_palette(fig_source *src, size_t size, fig_palette *pa
     return 1;
 }
 
-static fig_bool_t gif_read_image_data(fig_source *src, gif_image_descriptor *image_desc, fig_uint8_t *index_data) {
+static void gif_error_lzw_stack_overflow(fig_state *state) {
+    fig_state_set_error(state, "overflowed available LZW character stack");
+}
+
+static fig_bool_t gif_read_image_data(fig_state *state, fig_source *src, gif_image_descriptor *image_desc, fig_uint8_t *index_data) {
     fig_uint8_t min_code_size;
     fig_uint16_t clear;
     fig_uint16_t eoi;
@@ -196,9 +199,11 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_descriptor *ima
     fig_uint8_t y_increment;
 
     if(!fig_source_read_u8(src, &min_code_size)) {
+        fig_state_set_error(state, "failed to read minimum LZW code size");
         return 0;
     }
     if(min_code_size > GIF_LZW_MAX_BITS) {
+        fig_state_set_error(state, "minimum LZW code size is too large");
         return 0;
     }
     
@@ -235,6 +240,7 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_descriptor *ima
 
             if(sub_block_length == 0) {
                 if(!fig_source_read_u8(src, &sub_block_length)) {
+                    fig_state_set_error(state, "failed to read LZW sub-block length");
                     return 0;
                 }
                 if(sub_block_length == 0) {
@@ -242,6 +248,7 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_descriptor *ima
                 }
             }
             if(!fig_source_read_u8(src, &byte)) {
+                fig_state_set_error(state, "unexpected end-of-stream during LZW decompression");
                 return 0;
             }
             value |= byte << bits;
@@ -274,14 +281,19 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_descriptor *ima
 
                 if(current_code == avail) {
                     if(char_stack_size >= GIF_LZW_MAX_STACK_SIZE) {
+                        gif_error_lzw_stack_overflow(state);
                         return 0;
                     }
                     char_stack[char_stack_size++] = first_char;
                     current_code = old_code;
                 }
                 while(current_code >= clear) {
-                    if(current_code >= GIF_LZW_MAX_CODES
-                    || char_stack_size >= GIF_LZW_MAX_STACK_SIZE) {
+                    if(current_code >= GIF_LZW_MAX_CODES) {
+                        fig_state_set_error(state, "exceeded maximum number of LZW codes");
+                        return 0;
+                    }
+                    if(char_stack_size >= GIF_LZW_MAX_STACK_SIZE) {
+                        gif_error_lzw_stack_overflow(state);
                         return 0;
                     }
                     char_stack[char_stack_size++] = suffix_chars[current_code];
@@ -291,6 +303,7 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_descriptor *ima
                 first_char = suffix_chars[current_code];
 
                 if(char_stack_size >= GIF_LZW_MAX_STACK_SIZE) {
+                    gif_error_lzw_stack_overflow(state);
                     return 0;
                 }
                 char_stack[char_stack_size++] = first_char;
@@ -307,6 +320,7 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_descriptor *ima
 
                 old_code = code;
             } else {
+                fig_state_set_error(state, "invalid LZW code encountered");
                 return 0;
             }
 
@@ -319,7 +333,7 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_descriptor *ima
 
                 top = char_stack[--char_stack_size];
                 index_data[y * image_desc->width + x] = top;
-                x++;
+                ++x;
 
                 if(x >= image_desc->width) {
                     x = 0;
@@ -335,31 +349,38 @@ static fig_bool_t gif_read_image_data(fig_source *src, gif_image_descriptor *ima
     }
 }
 
-fig_animation *fig_load_gif(fig_source *src) {
+fig_animation *fig_load_gif(fig_state *state, fig_source *src) {
     fig_uint8_t version;
     gif_screen_descriptor screen_desc;
     gif_graphics_control gfx_ctrl;
     fig_animation *animation;
     
     if(src == NULL) {
+        fig_state_set_error(state, "src is NULL");
         return NULL;
     }
 
     memset(&screen_desc, 0, sizeof(screen_desc));
     memset(&gfx_ctrl, 0, sizeof(gfx_ctrl));
 
-    if(!gif_read_header(src, &version)
-    || !gif_read_screen_descriptor(src, &screen_desc)) {
+    if(!gif_read_header(src, &version)) {
+        fig_state_set_error(state, "failed to read header");
+        return NULL;
+    }
+    if(!gif_read_screen_descriptor(src, &screen_desc)) {
+        fig_state_set_error(state, "failed to read screen descriptor");
         return NULL;
     }
 
-    animation = fig_create_animation();
+    animation = fig_create_animation(state);
     if(animation == NULL
     || !fig_animation_resize_canvas(animation, screen_desc.width, screen_desc.height)) {
+        fig_state_set_error(state, "failed to allocate animation canvas");
         return fig_animation_free(animation), NULL;
     }
     if(screen_desc.global_colors > 0
     && !gif_read_palette(src, screen_desc.global_colors, fig_animation_get_palette(animation))) {
+        fig_state_set_error(state, "failed to read global palette");
         return fig_animation_free(animation), NULL;
     }
 
@@ -367,6 +388,7 @@ fig_animation *fig_load_gif(fig_source *src) {
         fig_uint8_t block_type;
 
         if(!fig_source_read_u8(src, &block_type)) {
+            fig_state_set_error(state, "failed to read block type");
             return fig_animation_free(animation), NULL;
         }
         switch(block_type) {
@@ -374,11 +396,13 @@ fig_animation *fig_load_gif(fig_source *src) {
                 fig_uint8_t extension_type;
 
                 if(!fig_source_read_u8(src, &extension_type)) {
+                    fig_state_set_error(state, "failed to read extension block type");
                     return fig_animation_free(animation), NULL;
                 }
                 switch(extension_type) {
                     case GIF_EXT_GRAPHICS_CONTROL: {
                         if(!gif_read_graphics_control(src, &gfx_ctrl)) {
+                            fig_state_set_error(state, "failed to read graphics control block");
                             return fig_animation_free(animation), NULL;
                         }
                         break;
@@ -388,6 +412,7 @@ fig_animation *fig_load_gif(fig_source *src) {
                     case GIF_EXT_APPLICATION:*/
                     default: {
                         if(!gif_skip_sub_blocks(src)) {
+                            fig_state_set_error(state, "failed to skip extension block");
                             return fig_animation_free(animation), NULL;
                         }
                         break;
@@ -400,16 +425,20 @@ fig_animation *fig_load_gif(fig_source *src) {
                 gif_image_descriptor image_desc;
                 
                 memset(&image_desc, 0, sizeof(image_desc));
-                gif_read_image_descriptor(src, &image_desc);
+                if(!gif_read_image_descriptor(src, &image_desc)) {
+                    fig_state_set_error(state, "failed to read frame image descriptor");
+                }
                 image = fig_animation_add_image(animation);
 
                 if(image == NULL
                 || !fig_image_resize_indexed(image, image_desc.width, image_desc.height)
                 || !fig_image_resize_canvas(image, screen_desc.width, screen_desc.height)) {
+                    fig_state_set_error(state, "failed to allocate frame image canvas");
                     return fig_animation_free(animation), NULL;
                 }
                 if(image_desc.local_colors > 0
                 && !gif_read_palette(src, image_desc.local_colors, fig_image_get_palette(image))) {
+                    fig_state_set_error(state, "failed to read frame local palette");
                     return fig_animation_free(animation), NULL;
                 }
 
@@ -420,7 +449,7 @@ fig_animation *fig_load_gif(fig_source *src) {
                 fig_image_set_delay(image, gfx_ctrl.delay);
                 fig_image_set_disposal(image, gfx_ctrl.disposal);
 
-                if(!gif_read_image_data(src, &image_desc, fig_image_get_indexed_data(image))) {
+                if(!gif_read_image_data(state, src, &image_desc, fig_image_get_indexed_data(image))) {
                     return fig_animation_free(animation), NULL;
                 }
 
@@ -431,6 +460,7 @@ fig_animation *fig_load_gif(fig_source *src) {
                 return animation;
             }
             default:
+                fig_state_set_error(state, "unrecognized block type");
                 return fig_animation_free(animation), NULL;
         }
     }

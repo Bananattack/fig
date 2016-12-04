@@ -1,8 +1,8 @@
-#include <stdlib.h>
 #include <string.h>
 #include <fig.h>
 
 struct fig_animation {
+    fig_state *state;
     size_t width;
     size_t height;
     fig_palette *palette;
@@ -12,22 +12,28 @@ struct fig_animation {
     size_t loop_count;
 };
 
-fig_animation *fig_create_animation(void) {
-    fig_animation *self = (fig_animation *) malloc(sizeof(fig_animation));
-    if(self != NULL) {
-        self->width = 0;
-        self->height = 0;
-        self->palette = fig_create_palette();
-        self->image_count = 0;
-        self->image_capacity = 0;
-        self->image_data = NULL;
-        self->loop_count = 0;
+fig_animation *fig_create_animation(fig_state *state) {
+    if(state != NULL) {
+        fig_animation *self = (fig_animation *) fig_state_get_allocator(state)(fig_state_get_userdata(state), NULL, 0, sizeof(fig_animation));
+        if(self != NULL) {
+            self->state = state;
+            self->width = 0;
+            self->height = 0;
+            self->palette = fig_create_palette(state);
+            self->image_count = 0;
+            self->image_capacity = 0;
+            self->image_data = NULL;
+            self->loop_count = 0;
 
-        if(self->palette == NULL) {
-            return fig_animation_free(self), NULL;
+            if(self->palette == NULL) {
+                return fig_animation_free(self), NULL;
+            }
+        } else {
+            fig_state_set_error_allocation_failed(state);
         }
+        return self;
     }
-    return self;
+    return NULL;
 }
 
 fig_palette *fig_animation_get_palette(fig_animation *self) {
@@ -85,7 +91,8 @@ fig_image *fig_animation_add_image(fig_animation *self) {
             capacity = 1;
         }
 
-        data = (fig_image **) realloc(self->image_data, sizeof(fig_image*) * capacity);
+        data = (fig_image **) fig_state_get_allocator(self->state)(fig_state_get_userdata(self->state),
+            self->image_data, sizeof(fig_image *) * self->image_capacity, sizeof(fig_image *) * capacity);
         if(data == NULL) {
             return NULL;
         }
@@ -93,7 +100,7 @@ fig_image *fig_animation_add_image(fig_animation *self) {
         self->image_capacity = capacity;
     }
 
-    image = fig_create_image();
+    image = fig_create_image(self->state);
     if(image != NULL) {
         self->image_data[self->image_count++] = image;
     }
@@ -119,7 +126,7 @@ fig_image *fig_animation_insert_image(fig_animation *self, size_t index) {
     return image;
 }
 
-void fig_animation_remove(fig_animation *self, size_t index) {
+void fig_animation_remove_image(fig_animation *self, size_t index) {
     fig_image **data;
     size_t i, end;
     FIG_ASSERT(index < self->image_count);
@@ -269,18 +276,22 @@ void fig_animation_render_indexed(fig_animation *self) {
 
 void fig_animation_free(fig_animation *self) {
     if(self != NULL) {
+        fig_allocator_t alloc = fig_state_get_allocator(self->state);
+        void *ud = fig_state_get_userdata(self->state);
+
         if(self->palette != NULL) {
             fig_palette_free(self->palette);
         }
         if(self->image_data != NULL) {
             fig_image **data;
             size_t i;
+
             data = self->image_data;
             for(i = 0; i < self->image_count; ++i) {
                 fig_image_free(data[i]);
             }
-            free(self->image_data);
+            alloc(ud, data, sizeof(fig_image *) * self->image_count, 0);
         }
+        alloc(ud, self, sizeof(fig_animation), 0);
     }
-    free(self);
 }

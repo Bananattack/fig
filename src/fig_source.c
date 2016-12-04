@@ -4,15 +4,24 @@
 #include <fig.h>
 
 struct fig_source {
+    fig_state *state;
     void *userdata;
     fig_source_callbacks callbacks;
 };
 
-fig_source *fig_create_source(fig_source_callbacks callbacks, void *userdata) {
-    fig_source *self = (fig_source *) malloc(sizeof(fig_source));
-    self->callbacks = callbacks;
-    self->userdata = userdata;
-    return self;
+fig_source *fig_create_source(fig_state *state, fig_source_callbacks callbacks, void *ud) {
+    if(state != NULL) {
+        fig_source *self = (fig_source *) fig_state_get_allocator(state)(fig_state_get_userdata(state), NULL, 0, sizeof(fig_source));
+        if(self != NULL) {
+            self->state = state;
+            self->userdata = ud;
+            self->callbacks = callbacks;
+        } else {
+            fig_state_set_error_allocation_failed(state);
+        }
+        return self;
+    }
+    return NULL;
 }
 
 
@@ -37,14 +46,20 @@ static const fig_source_callbacks file_source_cb = {
     NULL
 };
 
-fig_source *fig_create_file_source(FILE *f) {
-    return f != NULL ? fig_create_source(file_source_cb, f) : NULL;
+fig_source *fig_create_file_source(fig_state *state, FILE *f) {
+    if(f != NULL) {
+        return fig_create_source(state, file_source_cb, f);
+    } else {
+        fig_state_set_error(state, "file handle is invalid");
+        return NULL;
+    }        
 }
 
 
 
 
 typedef struct {
+    fig_state *state;
     const char *data;
     size_t position;
     size_t length;
@@ -109,7 +124,10 @@ static ptrdiff_t memfile_tell(void *ud) {
 }
 
 static void memfile_cleanup(void *ud) {
-    free(ud);
+    if(ud != NULL) {
+        memfile *mf = (memfile *) ud;
+        fig_state_get_allocator(mf->state)(fig_state_get_userdata(mf->state), mf, sizeof(memfile), 0);
+    }
 }
 
 static const fig_source_callbacks memfile_source_cb = {
@@ -119,28 +137,36 @@ static const fig_source_callbacks memfile_source_cb = {
     memfile_cleanup
 };
 
-fig_source *fig_create_memory_source(void *data, size_t length) {
-    fig_source *self;
-    memfile *mf;
+fig_source *fig_create_memory_source(fig_state *state, void *data, size_t length) {
+    if(state != NULL) {
+        fig_source *self;
+        memfile *mf;
 
-    if(data == NULL) {
-        return NULL;
-    }
+        if(data == NULL) {
+            fig_state_set_error(state, "data is NULL");
+            return NULL;
+        }
 
-    mf = (memfile *) malloc(length);
-    if(mf == NULL) {
-        return NULL;
-    }
-    mf->data = data;
-    mf->length = length;
-    mf->position = 0;
+        mf = (memfile *) fig_state_get_allocator(state)(fig_state_get_userdata(state), NULL, 0, sizeof(memfile));
+        if(mf == NULL) {
+            return NULL;
+        } else {
+            fig_state_set_error_allocation_failed(state);
+            return NULL;
+        }  
+        mf->state = state;
+        mf->data = data;
+        mf->length = length;
+        mf->position = 0;
 
-    self = fig_create_source(file_source_cb, mf);
-    if(self == NULL) {
-        free(mf);
-        return NULL;
+        self = fig_create_source(state, file_source_cb, mf);
+        if(self == NULL) {
+            memfile_cleanup(mf);
+            return NULL;
+        }
+        return self;
     }
-    return self;
+    return NULL;
 }
 
 
@@ -194,6 +220,6 @@ void fig_source_free(fig_source *self) {
         if(self->callbacks.cleanup) {
             self->callbacks.cleanup(self->userdata);
         }
+        fig_state_get_allocator(self->state)(fig_state_get_userdata(self->state), self, sizeof(fig_source), 0);
     }
-    free(self);
 }

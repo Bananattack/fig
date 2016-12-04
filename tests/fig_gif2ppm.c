@@ -7,7 +7,8 @@ int main(int argc, char **argv) {
     char buffer[256];
     size_t i, j;
     FILE *f;
-    fig_source *src;
+    fig_state *state;
+    fig_source *source;
     fig_animation *animation;
 
     if(argc < 2) {
@@ -20,9 +21,10 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    src = fig_create_file_source(f);
-    animation = fig_load_gif(src);
-    fig_source_free(src);
+    state = fig_create_state();
+    source = fig_create_file_source(state, f);
+    animation = fig_load_gif(state, source);
+    fig_source_free(source);
     fclose(f);
     if(animation == NULL) {
         return 1;
@@ -71,6 +73,7 @@ int main(int argc, char **argv) {
     }
 
     fig_animation_free(animation);
+    fig_state_free(state);
 
     return 0;
 }
