@@ -19,7 +19,7 @@ extern "C" {
 
     #include <stddef.h>
 
-    #if (defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) || (defined(_MSC_VER) && _MSC_VER >= 1600)
+    #if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) || (defined(_MSC_VER) && _MSC_VER >= 1600)
         #include <stdint.h>
 
         typedef uint8_t fig_uint8_t;
@@ -35,7 +35,7 @@ extern "C" {
         typedef unsigned int fig_uint32_t;
     #endif
 
-    #if (defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) || (defined(_MSC_VER) && _MSC_VER >= 1600)
+    #if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) || (defined(_MSC_VER) && _MSC_VER >= 1600)
         #include <stdbool.h>
         typedef bool fig_bool_t;
     #else
@@ -43,16 +43,18 @@ extern "C" {
     #endif
 #endif
 
-typedef int fig_assert_sizeof_uint8_t_is_1_byte[sizeof(fig_uint8_t) == 1 && (fig_uint8_t) -1 >= 0 ? 1 : -1];
-typedef int fig_assert_sizeof_uint16_t_is_2_bytes[sizeof(fig_uint16_t) == 2 && (fig_uint16_t) -1 >= 0 ? 1 : -1];
-typedef int fig_assert_sizeof_uint32_t_is_4_bytes[sizeof(fig_uint32_t) == 4 && (fig_uint32_t) -1 >= 0 ? 1 : -1];
+typedef int fig_assert_fig_uint8_t_is_1_byte_and_unsigned[sizeof(fig_uint8_t) == 1 && (fig_uint8_t) -1 >= 0 ? 1 : -1];
+typedef int fig_assert_fig_uint16_t_is_2_byte_and_unsigned[sizeof(fig_uint16_t) == 2 && (fig_uint16_t) -1 >= 0 ? 1 : -1];
+typedef int fig_assert_fig_uint32_t_is_4_byte_and_unsigned[sizeof(fig_uint32_t) == 4 && (fig_uint32_t) -1 >= 0 ? 1 : -1];
 
 typedef struct fig_state fig_state;
 typedef struct fig_palette fig_palette;
 typedef struct fig_image fig_image;
 typedef struct fig_animation fig_animation;
-typedef struct fig_source fig_source;
-typedef struct fig_source_callbacks fig_source_callbacks;
+typedef struct fig_input fig_input;
+typedef struct fig_input_callbacks fig_input_callbacks;
+typedef struct fig_output fig_output;
+typedef struct fig_output_callbacks fig_output_callbacks;
 
 /* A function that allocates and manages blocks of memory.
  *
@@ -98,7 +100,7 @@ typedef enum fig_disposal_t {
     FIG_DISPOSAL_COUNT
 } fig_disposal_t;
 
-/* An enumeration of possible seek origins for sources. */
+/* An enumeration of possible seek origins for input/output streams. */
 typedef enum fig_seek_origin_t {
     /* Seek forward from beginning of file. */
     FIG_SEEK_SET = SEEK_SET,
@@ -212,7 +214,7 @@ void fig_image_set_transparent(fig_image *self, fig_bool_t value);
 void fig_image_set_transparency_index(fig_image *self, size_t value);
 /* Get the palette to apply for rendering. */
 fig_palette *fig_image_get_render_palette(fig_image *self, fig_animation *anim);
-/* Free a image created with fig_create_image. */
+/* Free an image created with fig_create_image. */
 void fig_image_free(fig_image *self);
 
 
@@ -244,7 +246,7 @@ void fig_animation_swap_images(fig_animation *self, size_t index_a, size_t index
 fig_image *fig_animation_add_image(fig_animation *self);
 /* Insert a new image, and return it. NULL on failure. 0 <= index <= size */
 fig_image *fig_animation_insert_image(fig_animation *self, size_t index);
-/* Remove a image from the animation and free it. */
+/* Remove an image from the animation and free it. */
 void fig_animation_remove_image(fig_animation *self, size_t index);
 /* Render all the images offline to get their complete appearance. */
 void fig_animation_render_indexed(fig_animation *self);
@@ -253,11 +255,11 @@ void fig_animation_free(fig_animation *self);
 
 
 
-/* A source used for reading binary data. */
-struct fig_source;
+/* A input stream used for reading binary data. */
+struct fig_input;
 
-/* An interface for defining a binary data source from which files are read. */
-struct fig_source_callbacks {
+/* An interface for defining a binary data input from which files are read. */
+struct fig_input_callbacks {
     /* Read up to count elements of given size into dest, and return the
      * number of elements actually read. */
     size_t (*read)(void *ud, void *dest, size_t size, size_t count);
@@ -266,45 +268,94 @@ struct fig_source_callbacks {
        this was successful. */
     fig_bool_t (*seek)(void *ud, ptrdiff_t offset, fig_seek_origin_t whence);
 
-    /* Tell the current position in the source. */
+    /* Tell the current position in the input. */
     ptrdiff_t (*tell)(void *ud);
 
-    /* Free any resources owned by this source userdata. */
+    /* Free any resources owned by this input. */
     void (*cleanup)(void *ud);
 };
 
-/* Make a source that has callbacks to read the provided opaque userdata.
+/* Make an input that has callbacks to read the provided opaque userdata.
  * Returns NULL on failure. */
-fig_source *fig_create_source(fig_state *state, fig_source_callbacks callbacks, void *ud);
-/* Create and return a source that uses a file handle to read data.
- * The file is user-owned, and is left open after the source is freed.
+fig_input *fig_create_input(fig_state *state, fig_input_callbacks callbacks, void *ud);
+/* Create and return an input that uses a file handle to read data.
+ * The file is user-owned, and is left open after the input is freed.
  * Returns NULL on failure. */
-fig_source *fig_create_file_source(fig_state *state, FILE *f);
-/* Create and return a source that uses a memory buffer to read data.
- * The data is user-owned, and is not freed when the source is freed.
+fig_input *fig_create_file_input(fig_state *state, FILE *f);
+/* Create and return an input that uses a memory buffer to read data.
+ * The data is user-owned, and is not freed when the input is freed.
  * Returns NULL on failure. */
-fig_source *fig_create_memory_source(fig_state *state, void *data, size_t length);
+fig_input *fig_create_memory_input(fig_state *state, void *data, size_t length);
 /* Read up to count elements of given size into dest.
-   Return the number of elements actually read. */
-size_t fig_source_read(fig_source *self, void *dest, size_t size, size_t count);
+   Returns the number of elements actually read. */
+size_t fig_input_read(fig_input *self, void *dest, size_t size, size_t count);
 /* Read a uint8_t value into the dest, return whether it succeeeded. */
-fig_bool_t fig_source_read_u8(fig_source *self, fig_uint8_t *dest);
-/* Read a little endian uint16_t into dest, return whether it was succeeded. */
-fig_bool_t fig_source_read_le_u16(fig_source *self, fig_uint16_t *dest);
-/* Read a little endian uint32_t into dest, return whether it was succeeded. */
-fig_bool_t fig_source_read_le_u32(fig_source *self, fig_uint32_t *dest);
+fig_bool_t fig_input_read_u8(fig_input *self, fig_uint8_t *dest);
+/* Read a little endian uint16_t into dest, return whether it was successful. */
+fig_bool_t fig_input_read_le_u16(fig_input *self, fig_uint16_t *dest);
+/* Read a little endian uint32_t into dest, return whether it was successful. */
+fig_bool_t fig_input_read_le_u32(fig_input *self, fig_uint32_t *dest);
 /* Attempt to seek to a position within the stream, and return whether
 this was successful. */
-fig_bool_t fig_source_seek(fig_source *self, ptrdiff_t offset, fig_seek_origin_t whence);
-/* Tell the current position in the source. */
-ptrdiff_t fig_source_tell(fig_source *self);
-/* Free a source created with one of the fig_create_source functions. */
-void fig_source_free(fig_source *self);
+fig_bool_t fig_input_seek(fig_input *self, ptrdiff_t offset, fig_seek_origin_t whence);
+/* Tell the current position in the input. */
+ptrdiff_t fig_input_tell(fig_input *self);
+/* Free an input created with one of the fig_create_input functions. */
+void fig_input_free(fig_input *self);
+
+
+
+/* An output stream used for writing binary data. */
+struct fig_output;
+
+/* An interface for defining a binary data output to which files are written. */
+struct fig_output_callbacks {
+    /* Write up to count elements of given size from src into the output.
+     * Returns the number of elements actually written. */
+    size_t (*write)(void *ud, const void *src, size_t size, size_t count);
+
+    /* Free any resources owned by this output. */
+    void (*cleanup)(void *ud);
+};
+
+/* Make an output that has callbacks to write to the provided opaque userdata.
+ * Returns NULL on failure. */
+fig_output *fig_create_output(fig_state *state, fig_output_callbacks callbacks, void *ud);
+/* Create and return an output that uses a file handle to write data.
+ * The file is user-owned, and is left open after the output is freed.
+ * Returns NULL on failure. */
+fig_output *fig_create_file_output(fig_state *state, FILE *f);
+/* Create and return an output that uses an internal memory buffer to write data.
+ * The buffer is owned by the output, and is freed when the output is freed.
+ * Returns NULL on failure. */
+fig_output *fig_create_buffer_output(fig_state *state);
+/* Get the output callbacks associated with this output stream. */
+fig_output_callbacks fig_output_get_callbacks(fig_output *self);
+/* Get the current length of the buffer output. */
+size_t fig_buffer_output_get_size(fig_output *self);
+/* Get a pointer to data in the buffer output. */
+const char* fig_buffer_output_get_data(fig_output *self);
+/* Write up to count elements of given size from src into the output.
+   Returns the number of elements actually written. */
+size_t fig_output_write(fig_output *self, const void *src, size_t size, size_t count);
+/* Write a uint8_t, and return whether it was successful. */
+fig_bool_t fig_output_write_u8(fig_output *self, fig_uint8_t value);
+/* Write a little endian uint16_t, and return whether it was successful. */
+fig_bool_t fig_output_write_le_u16(fig_output *self, fig_uint16_t value);
+/* Write a little endian uint32_t, and return whether it was successful. */
+fig_bool_t fig_output_write_le_u32(fig_output *self, fig_uint32_t value);
+/* Free an output created with one of the fig_create_output functions. */
+void fig_output_free(fig_output *self);
+
 
 
 
 #ifdef FIG_LOAD_GIF
-fig_animation *fig_load_gif(fig_state *state, fig_source *src);
+fig_animation *fig_load_gif(fig_state *state, fig_input *input);
+#endif
+
+#ifdef FIG_SAVE_GIF
+fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *anim);
 #endif
 
 

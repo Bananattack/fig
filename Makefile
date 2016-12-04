@@ -30,6 +30,7 @@ ARFLAGS := cr
 RANLIB := ranlib
 
 FIG_GIF2PPM := fig_gif2ppm$(EXE)
+FIG_GIF2GIF := fig_gif2gif$(EXE)
 
 .PHONY: clean all
 
@@ -42,7 +43,7 @@ DIRECTORIES := $(call uniq, $(dir \
 	$(FIG_O) \
 	))
 
-all: $(DIRECTORIES) $(FIG_GIF2PPM) $(FIG_LIB)
+all: $(DIRECTORIES) $(FIG_GIF2PPM) $(FIG_GIF2GIF) $(FIG_LIB)
 
 $(FIG_O): obj/%.o: %.c $(FIG_H)
 	$(CC) $(CFLAGS) -MMD -c -o $@ $< $(INCLUDES)
@@ -54,8 +55,11 @@ $(FIG_LIB): $(FIG_O)
 $(FIG_GIF2PPM): tests/fig_gif2ppm.c $(FIG_LIB)
 	$(CC) $(CFLAGS) $< $(LDFLAGS) -o $@ $(INCLUDES)
 
+$(FIG_GIF2GIF): tests/fig_gif2gif.c $(FIG_LIB)
+	$(CC) $(CFLAGS) $< $(LDFLAGS) -o $@ $(INCLUDES)
+
 clean:
-	rm -rf obj $(FIG_GIF2PPM)
+	rm -rf obj $(FIG_GIF2GIF)
 
 define makedir
 $(1):

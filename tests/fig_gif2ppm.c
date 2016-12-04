@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
     size_t i, j;
     FILE *f;
     fig_state *state;
-    fig_source *source;
+    fig_input *input;
     fig_animation *animation;
 
     if(argc < 2) {
@@ -22,9 +22,9 @@ int main(int argc, char **argv) {
     }
 
     state = fig_create_state();
-    source = fig_create_file_source(state, f);
-    animation = fig_load_gif(state, source);
-    fig_source_free(source);
+    input = fig_create_file_input(state, f);
+    animation = fig_load_gif(state, input);
+    fig_input_free(input);
     fclose(f);
     if(animation == NULL) {
         return 1;

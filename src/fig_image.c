@@ -33,7 +33,7 @@ fig_image *fig_create_image(fig_state *state) {
             self->palette = fig_create_palette(state);
             if(self->palette == NULL) {
                 return fig_image_free(self), NULL;
-            }            
+            }
             self->transparent = 0;
             self->transparency_index = 0;
             self->indexed_data = NULL;

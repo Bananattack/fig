@@ -12,5 +12,6 @@ typedef TYPE_GOES_HERE fig_uint32_t;
 typedef TYPE_GOES_HERE fig_bool_t; */
 
 #define FIG_LOAD_GIF
+#define FIG_SAVE_GIF
 
 #endif
