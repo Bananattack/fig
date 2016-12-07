@@ -26,7 +26,6 @@ fig_input *fig_create_input(fig_state *state, fig_input_callbacks callbacks, voi
 
 
 
-
 static size_t file_read(void *ud, void *dest, size_t size, size_t count) {
     return fread(dest, size, count, (FILE *) ud);
 }
@@ -54,7 +53,6 @@ fig_input *fig_create_file_input(fig_state *state, FILE *f) {
         return NULL;
     }        
 }
-
 
 
 
@@ -170,7 +168,6 @@ fig_input *fig_create_memory_input(fig_state *state, void *data, size_t length) 
     }
     return NULL;
 }
-
 
 
 
