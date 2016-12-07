@@ -44,9 +44,9 @@ enum {
     GIF_LZW_MAX_STACK_SIZE = (1 << GIF_LZW_MAX_BITS) + 1,
     GIF_LZW_NULL_CODE = 0xCACA
 };
-const char* const GIF_HEADER_VERSION_87a = "GIF87a";
-const char* const GIF_HEADER_VERSION_89a = "GIF89a";
-const char* const GIF_APPLICATION_SIGNATURE_NETSCAPE = "NETSCAPE2.0";
+const char * const GIF_HEADER_VERSION_87a = "GIF87a";
+const char * const GIF_HEADER_VERSION_89a = "GIF89a";
+const char * const GIF_APPLICATION_SIGNATURE_NETSCAPE = "NETSCAPE2.0";
 #endif
 
 #ifdef FIG_LOAD_GIF

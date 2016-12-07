@@ -334,7 +334,7 @@ fig_output_callbacks fig_output_get_callbacks(fig_output *self);
 /* Get the current length of the buffer output. */
 size_t fig_buffer_output_get_size(fig_output *self);
 /* Get a pointer to data in the buffer output. */
-const char* fig_buffer_output_get_data(fig_output *self);
+const char *fig_buffer_output_get_data(fig_output *self);
 /* Write up to count elements of given size from src into the output.
    Returns the number of elements actually written. */
 size_t fig_output_write(fig_output *self, const void *src, size_t size, size_t count);
