@@ -35,7 +35,7 @@ extern "C" {
         typedef unsigned int fig_uint32_t;
     #endif
 
-    #if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) || (defined(_MSC_VER) && _MSC_VER >= 1600)
+    #if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) || (defined(_MSC_VER) && _MSC_VER >= 1700)
         #include <stdbool.h>
         typedef bool fig_bool_t;
     #else
