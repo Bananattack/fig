@@ -6,11 +6,11 @@ fig
 About
 -----
 
-Fig is an image and animation library written in C. (VERY work-in-progress) 
+Fig is an image and animation library written in C.
 
 Supports:
 
-* Graphics Interchange Format (.gif) - Decoding, but not encoding.
+* Graphics Interchange Format (.gif) - Reading and writing support.
 
 Compiling
 ---------
