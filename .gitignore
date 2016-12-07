@@ -38,3 +38,5 @@ vc/tests/[Rr]elease
 *~
 vc/ipch
 obj/
+*.VC.db
+*.VC.opendb

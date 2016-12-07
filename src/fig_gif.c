@@ -517,8 +517,8 @@ fig_animation *fig_load_gif(fig_state *state, fig_input *input) {
                     return fig_animation_free(animation), NULL;
                 }
 
-                fig_image_set_indexed_x(image, image_desc.x);
-                fig_image_set_indexed_y(image, image_desc.y);
+                fig_image_set_origin_x(image, image_desc.x);
+                fig_image_set_origin_y(image, image_desc.y);
                 fig_image_set_transparent(image, gfx_ctrl.transparent);
                 fig_image_set_transparency_index(image, gfx_ctrl.transparency_index);
                 fig_image_set_delay(image, gfx_ctrl.delay);
@@ -629,7 +629,7 @@ static fig_bool_t block_write_bits(fig_state *state, fig_output *output, fig_uin
     return 1;
 }
 
-fig_bool_t write_image_data(fig_state *state, fig_output *output, fig_image *image, fig_palette *palette) {
+static fig_bool_t write_image_data(fig_state *state, fig_output *output, fig_image *image, fig_palette *palette) {
     fig_uint8_t min_code_size;
     fig_uint16_t clear;
     fig_uint16_t eoi;
@@ -785,11 +785,11 @@ fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *ani
 
     if(output == NULL) {
         fig_state_set_error(state, "output is NULL");
-        return NULL;
+        return 0;
     }
     if(anim == NULL) {
         fig_state_set_error(state, "anim is NULL");
-        return NULL;
+        return 0;
     }
 
     if(fig_output_write(output, GIF_HEADER_VERSION_89a, GIF_HEADER_LENGTH, 1) != 1) {
@@ -813,8 +813,14 @@ fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *ani
         screen_desc_packed_fields = 0;
     }
 
-    if(!fig_output_write_le_u16(output, fig_animation_get_width(anim))
-    || !fig_output_write_le_u16(output, fig_animation_get_height(anim))
+    if(fig_animation_get_width(anim) >= 0xFFFF
+    || fig_animation_get_height(anim) >= 0xFFFF) {
+        fig_state_set_error(state, "animation canvas dimensions are too large");
+        return 0;
+    }
+
+    if(!fig_output_write_le_u16(output, (fig_uint16_t) fig_animation_get_width(anim))
+    || !fig_output_write_le_u16(output, (fig_uint16_t) fig_animation_get_height(anim))
     || !fig_output_write_u8(output, screen_desc_packed_fields)
     || !fig_output_write_u8(output, 0)
     || !fig_output_write_u8(output, 0)) {
@@ -837,7 +843,7 @@ fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *ani
         || fig_output_write(output, GIF_APPLICATION_SIGNATURE_NETSCAPE, GIF_APPLICATION_SIGNATURE_LENGTH, 1) != 1
         || !fig_output_write_u8(output, 3)
         || !fig_output_write_u8(output, 1)
-        || !fig_output_write_le_u16(output, fig_animation_get_loop_count(anim))
+        || !fig_output_write_le_u16(output, fig_animation_get_loop_count(anim) <= 0xFFFF ? (fig_uint16_t) fig_animation_get_loop_count(anim) : 0)
         || !fig_output_write_u8(output, 0)) {
             error_write_failed(state);
             return 0;
@@ -858,8 +864,8 @@ fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *ani
             || !fig_output_write_u8(output,
                 (fig_image_get_transparent(image) ? GIF_GRAPHICS_CTRL_TRANSPARENCY : 0)
                 | (convert_fig_disposal_to_gif_disposal(fig_image_get_disposal(image)) << GIF_GRAPHICS_CTRL_DISPOSAL_SHIFT))
-            || !fig_output_write_le_u16(output, delay > 0xFFFF ? 0xFFFF : delay)
-            || !fig_output_write_u8(output, fig_image_get_transparency_index(image) & 0xFF)
+            || !fig_output_write_le_u16(output, delay <= 0xFFFF ? (fig_uint16_t) delay : 0)
+            || !fig_output_write_u8(output, (fig_uint8_t) fig_image_get_transparency_index(image))
             || !fig_output_write_u8(output, 0)) {
                 error_write_failed(state);
                 return 0;
@@ -882,11 +888,21 @@ fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *ani
             image_desc_packed_fields = 0;
         }
 
+        if(fig_image_get_origin_x(image) >= 0xFFFF
+        || fig_image_get_origin_y(image) >= 0xFFFF) {
+            fig_state_set_error(state, "frame origin is outside of representatable 16-bit coordinate range");
+        }
+
+        if(fig_image_get_indexed_width(image) >= 0xFFFF
+        || fig_image_get_indexed_height(image) >= 0xFFFF) {
+            fig_state_set_error(state, "frame dimensions are too large.");
+        }
+
         if(!fig_output_write_u8(output, GIF_BLOCK_IMAGE)
-        || !fig_output_write_le_u16(output, fig_image_get_indexed_x(image))
-        || !fig_output_write_le_u16(output, fig_image_get_indexed_y(image))
-        || !fig_output_write_le_u16(output, fig_image_get_indexed_width(image))
-        || !fig_output_write_le_u16(output, fig_image_get_indexed_height(image))
+        || !fig_output_write_le_u16(output, (fig_uint16_t) fig_image_get_origin_x(image))
+        || !fig_output_write_le_u16(output, (fig_uint16_t) fig_image_get_origin_y(image))
+        || !fig_output_write_le_u16(output, (fig_uint16_t) fig_image_get_indexed_width(image))
+        || !fig_output_write_le_u16(output, (fig_uint16_t) fig_image_get_indexed_height(image))
         || !fig_output_write_u8(output, image_desc_packed_fields)) {
             error_write_failed(state);
             return 0;

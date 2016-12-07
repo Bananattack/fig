@@ -84,7 +84,7 @@ static fig_bool_t memfile_seek(void *ud, ptrdiff_t offset, fig_seek_origin_t whe
     memfile *mf = (memfile *) ud;
     switch (whence) {
         case FIG_SEEK_SET:
-            if (offset < 0 || offset >= mf->length) {
+            if (offset < 0 || (size_t) offset >= mf->length) {
                 return 0;
             }
             mf->position = (size_t) offset;
@@ -107,7 +107,7 @@ static fig_bool_t memfile_seek(void *ud, ptrdiff_t offset, fig_seek_origin_t whe
             }
             break;
         case FIG_SEEK_END:
-            if (offset < 0 || offset >= mf->length) {
+            if (offset < 0 || (size_t) offset >= mf->length) {
                 return 0;
             }
             mf->position = (mf->length - 1) - (size_t) offset;

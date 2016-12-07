@@ -161,8 +161,8 @@ static void dispose_indexed(fig_animation *self, fig_image *prev, fig_image *cur
     fig_uint32_t *next_canvas_data;
     fig_disposal_t disposal;
 
-    cur_x = fig_image_get_indexed_x(cur);
-    cur_y = fig_image_get_indexed_y(cur);
+    cur_x = fig_image_get_origin_x(cur);
+    cur_y = fig_image_get_origin_y(cur);
     cur_w = fig_image_get_indexed_width(cur);
     cur_h = fig_image_get_indexed_height(cur);
     cur_transparent = fig_image_get_transparent(cur);
@@ -217,8 +217,8 @@ static void blit_indexed(fig_animation *self, fig_image *image) {
     size_t i, j;
 
     palette = fig_image_get_render_palette(image, self);
-    x = fig_image_get_indexed_x(image);
-    y = fig_image_get_indexed_y(image);
+    x = fig_image_get_origin_x(image);
+    y = fig_image_get_origin_y(image);
     w = fig_image_get_indexed_width(image);
     h = fig_image_get_indexed_height(image);
     transparent = fig_image_get_transparent(image);

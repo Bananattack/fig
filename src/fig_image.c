@@ -50,11 +50,11 @@ fig_palette *fig_image_get_palette(fig_image *self) {
     return self->palette;
 }
 
-size_t fig_image_get_indexed_x(fig_image *self) {
+size_t fig_image_get_origin_x(fig_image *self) {
     return self->indexed_x;
 }
 
-size_t fig_image_get_indexed_y(fig_image *self) {
+size_t fig_image_get_origin_y(fig_image *self) {
     return self->indexed_y;
 }
 
@@ -70,11 +70,11 @@ fig_uint8_t *fig_image_get_indexed_data(fig_image *self) {
     return self->indexed_data;
 }
 
-void fig_image_set_indexed_x(fig_image *self, size_t value) {
+void fig_image_set_origin_x(fig_image *self, size_t value) {
     self->indexed_x = value;
 }
 
-void fig_image_set_indexed_y(fig_image *self, size_t value) {
+void fig_image_set_origin_y(fig_image *self, size_t value) {
     self->indexed_y = value;
 }
 
