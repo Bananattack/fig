@@ -348,8 +348,6 @@ fig_bool_t fig_output_write_le_u32(fig_output *self, fig_uint32_t value);
 void fig_output_free(fig_output *self);
 
 
-
-
 #ifdef FIG_LOAD_GIF
 fig_animation *fig_load_gif(fig_state *state, fig_input *input);
 #endif
@@ -357,7 +355,6 @@ fig_animation *fig_load_gif(fig_state *state, fig_input *input);
 #ifdef FIG_SAVE_GIF
 fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *anim);
 #endif
-
 
 #ifdef __cplusplus
 }

@@ -82,7 +82,6 @@ typedef struct {
     gif_disposal_t disposal;
 } gif_graphics_control;
 
-
 static fig_bool_t read_header(fig_input *input, fig_uint8_t *version) {
     char buffer[GIF_HEADER_LENGTH];
 
