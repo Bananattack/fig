@@ -858,6 +858,13 @@ fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *ani
         fig_uint8_t image_desc_packed_fields;      
 
         if(image_count > 1) {
+            if(fig_image_get_transparent(image)
+            && (fig_image_get_transparency_index(image) >= fig_palette_count_colors(fig_image_get_render_palette(image, anim))
+                || fig_image_get_transparency_index(image) >= 0xFF)) {
+                fig_state_set_error(state, "transparency index is outside of valid palette range");
+                return 0;
+            }
+
             if(!fig_output_write_u8(output, GIF_BLOCK_EXTENSION)
             || !fig_output_write_u8(output, GIF_EXT_GRAPHICS_CONTROL)
             || !fig_output_write_u8(output, 4)
@@ -865,7 +872,7 @@ fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *ani
                 (fig_image_get_transparent(image) ? GIF_GRAPHICS_CTRL_TRANSPARENCY : 0)
                 | (convert_fig_disposal_to_gif_disposal(fig_image_get_disposal(image)) << GIF_GRAPHICS_CTRL_DISPOSAL_SHIFT))
             || !fig_output_write_le_u16(output, delay <= 0xFFFF ? (fig_uint16_t) delay : 0)
-            || !fig_output_write_u8(output, (fig_uint8_t) fig_image_get_transparency_index(image))
+            || !fig_output_write_u8(output, fig_image_get_transparent(image) ? (fig_uint8_t) fig_image_get_transparency_index(image) : 0)
             || !fig_output_write_u8(output, 0)) {
                 error_write_failed(state);
                 return 0;
