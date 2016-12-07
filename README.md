@@ -1,7 +1,7 @@
 fig
 ===
 
-Fig is an image and animation library written in portable ANSI C.
+fig is an image and animation library written in C.
 
 Supports:
 
