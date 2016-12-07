@@ -10,7 +10,7 @@ Fig is an image and animation library written in C.
 
 Supports:
 
-* Graphics Interchange Format (.gif) - Decoding and encoding support.
+* Graphics Interchange Format (.gif) - Reading and writing support.
 
 Compiling
 ---------
