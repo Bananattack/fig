@@ -353,7 +353,7 @@ fig_animation *fig_load_gif(fig_state *state, fig_input *input);
 #endif
 
 #ifdef FIG_SAVE_GIF
-fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *anim);
+fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *animation);
 #endif
 
 #ifdef __cplusplus

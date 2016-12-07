@@ -774,7 +774,7 @@ static gif_disposal_t convert_fig_disposal_to_gif_disposal(fig_disposal_t dispos
     }
 }
 
-fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *anim) {
+fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *animation) {
     fig_palette *global_palette;
     fig_image **images;
     size_t image_count;
@@ -786,7 +786,7 @@ fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *ani
         fig_state_set_error(state, "output is NULL");
         return 0;
     }
-    if(anim == NULL) {
+    if(animation == NULL) {
         fig_state_set_error(state, "anim is NULL");
         return 0;
     }
@@ -796,7 +796,7 @@ fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *ani
         return 0;
     }
     
-    global_palette = fig_animation_get_palette(anim);
+    global_palette = fig_animation_get_palette(animation);
     if(global_palette != NULL
     && fig_palette_count_colors(global_palette) != 0) {
         global_color_depth = get_color_depth(global_palette);
@@ -812,14 +812,14 @@ fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *ani
         screen_desc_packed_fields = 0;
     }
 
-    if(fig_animation_get_width(anim) >= 0xFFFF
-    || fig_animation_get_height(anim) >= 0xFFFF) {
+    if(fig_animation_get_width(animation) >= 0xFFFF
+    || fig_animation_get_height(animation) >= 0xFFFF) {
         fig_state_set_error(state, "animation canvas dimensions are too large");
         return 0;
     }
 
-    if(!fig_output_write_le_u16(output, (fig_uint16_t) fig_animation_get_width(anim))
-    || !fig_output_write_le_u16(output, (fig_uint16_t) fig_animation_get_height(anim))
+    if(!fig_output_write_le_u16(output, (fig_uint16_t) fig_animation_get_width(animation))
+    || !fig_output_write_le_u16(output, (fig_uint16_t) fig_animation_get_height(animation))
     || !fig_output_write_u8(output, screen_desc_packed_fields)
     || !fig_output_write_u8(output, 0)
     || !fig_output_write_u8(output, 0)) {
@@ -832,8 +832,8 @@ fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *ani
         return 0;
     }
 
-    image_count = fig_animation_count_images(anim);
-    images = fig_animation_get_images(anim);    
+    image_count = fig_animation_count_images(animation);
+    images = fig_animation_get_images(animation);    
 
     if(image_count > 1) {
         if(!fig_output_write_u8(output, GIF_BLOCK_EXTENSION)
@@ -842,7 +842,7 @@ fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *ani
         || fig_output_write(output, GIF_APPLICATION_SIGNATURE_NETSCAPE, GIF_APPLICATION_SIGNATURE_LENGTH, 1) != 1
         || !fig_output_write_u8(output, 3)
         || !fig_output_write_u8(output, 1)
-        || !fig_output_write_le_u16(output, fig_animation_get_loop_count(anim) <= 0xFFFF ? (fig_uint16_t) fig_animation_get_loop_count(anim) : 0)
+        || !fig_output_write_le_u16(output, fig_animation_get_loop_count(animation) <= 0xFFFF ? (fig_uint16_t) fig_animation_get_loop_count(animation) : 0)
         || !fig_output_write_u8(output, 0)) {
             error_write_failed(state);
             return 0;
@@ -858,7 +858,7 @@ fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *ani
 
         if(image_count > 1) {
             if(fig_image_get_transparent(image)
-            && (fig_image_get_transparency_index(image) >= fig_palette_count_colors(fig_image_get_render_palette(image, anim))
+            && (fig_image_get_transparency_index(image) >= fig_palette_count_colors(fig_image_get_render_palette(image, animation))
                 || fig_image_get_transparency_index(image) >= 0xFF)) {
                 fig_state_set_error(state, "transparency index is outside of valid palette range");
                 return 0;
