@@ -1,12 +1,7 @@
 fig
 ===
 
-***by Andrew G. Crowell***
-
-About
------
-
-Fig is an image and animation library written in C.
+Fig is an image and animation library written in portable ANSI C.
 
 Supports:
 
