@@ -31,6 +31,7 @@ RANLIB := ranlib
 
 FIG_GIF2PPM := fig_gif2ppm$(EXE)
 FIG_GIF2GIF := fig_gif2gif$(EXE)
+FIG_FIREBALL := fig_fireball$(EXE)
 
 .PHONY: clean all
 
@@ -43,7 +44,7 @@ DIRECTORIES := $(call uniq, $(dir \
 	$(FIG_O) \
 	))
 
-all: $(DIRECTORIES) $(FIG_GIF2PPM) $(FIG_GIF2GIF) $(FIG_LIB)
+all: $(DIRECTORIES) $(FIG_GIF2PPM) $(FIG_GIF2GIF) $(FIG_FIREBALL) $(FIG_LIB)
 
 $(FIG_O): obj/%.o: %.c $(FIG_H)
 	$(CC) $(CFLAGS) -MMD -c -o $@ $< $(INCLUDES)
@@ -56,6 +57,9 @@ $(FIG_GIF2PPM): tests/fig_gif2ppm.c $(FIG_LIB)
 	$(CC) $(CFLAGS) $< $(LDFLAGS) -o $@ $(INCLUDES)
 
 $(FIG_GIF2GIF): tests/fig_gif2gif.c $(FIG_LIB)
+	$(CC) $(CFLAGS) $< $(LDFLAGS) -o $@ $(INCLUDES)
+
+$(FIG_FIREBALL): tests/fig_fireball.c $(FIG_LIB)
 	$(CC) $(CFLAGS) $< $(LDFLAGS) -o $@ $(INCLUDES)
 
 clean:
