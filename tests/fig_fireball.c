@@ -69,12 +69,12 @@ int main(int argc, char **argv) {
     }
     fig_animation_resize_canvas(animation, 128, 128);
 
-    for(frame_index = 0; frame_index != 512; ++frame_index) {
+    for(frame_index = 0; frame_index != 128; ++frame_index) {
         fig_uint8_t *indexed_data;
 
         fig_image *image = fig_animation_add_image(animation);
         fig_image_resize_indexed(image, 128, 128);
-        fig_image_set_delay(image, 3);
+        fig_image_set_delay(image, 6);
 
         indexed_data = fig_image_get_indexed_data(image);
 
@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
                         y++;
                     }
 
-                    indexed_data[y * 128 + x] = rand() % 8 < 3 ? indexed_data[i * 128 + j] / 2 : indexed_data[i * 128 + j];
+                    indexed_data[y * 128 + x] = rand() % 8 < 4 ? indexed_data[i * 128 + j] / 2 : indexed_data[i * 128 + j];
                 }
             }
         }
