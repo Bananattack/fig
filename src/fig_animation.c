@@ -286,7 +286,6 @@ fig_bool_t fig_animation_render_images(fig_animation *self) {
     return 1;
 }
 
-
 fig_palette *fig_animation_get_render_palette(fig_animation *self, fig_image *image) {
     fig_palette *local_palette = fig_image_get_palette(image);
     if(fig_palette_count_colors(local_palette) > 0) {
