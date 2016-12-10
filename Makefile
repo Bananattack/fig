@@ -8,6 +8,7 @@ endif
 
 HAS_GCC := $(shell $(LOCATE_COMMAND) gcc)
 HAS_CLANG := $(shell $(LOCATE_COMMAND) clang)
+HAS_PYTHON := $(shell $(LOCATE_COMMAND) python)
 
 ifdef HAS_GCC
 	CC := gcc
@@ -51,7 +52,10 @@ $(FIG_O): obj/%.o: %.c $(FIG_H)
 
 $(FIG_LIB): $(FIG_O)
 	$(AR) $(ARFLAGS) $@ $^
-	$(RANLIB) $@	
+	$(RANLIB) $@
+ifdef HAS_PYTHON
+	python ./build_single_header.py
+endif	
 
 $(FIG_GIF2PPM): tests/fig_gif2ppm.c $(FIG_LIB)
 	$(CC) $(CFLAGS) $< $(LDFLAGS) -o $@ $(INCLUDES)

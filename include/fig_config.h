@@ -11,7 +11,12 @@ typedef TYPE_GOES_HERE fig_uint16_t;
 typedef TYPE_GOES_HERE fig_uint32_t; 
 typedef TYPE_GOES_HERE fig_bool_t; */
 
+/* To manually specify which formats to support: */
+/* #define FIG_EXPLICIT_SUPPORT */
+
+#ifndef FIG_EXPLICIT_SUPPORT
 #define FIG_LOAD_GIF
 #define FIG_SAVE_GIF
+#endif 
 
 #endif
