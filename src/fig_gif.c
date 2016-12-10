@@ -5,58 +5,58 @@
 
 enum {
     /* Header definitions */
-    GIF_HEADER_LENGTH = 6,
+    FIG_GIF_HEADER_LENGTH = 6,
 
     /* Block types */
-    GIF_BLOCK_EXTENSION = 0x21,
-    GIF_BLOCK_IMAGE = 0x2C,
-    GIF_BLOCK_TERMINATOR = 0x3B,
+    FIG_GIF_BLOCK_EXTENSION = 0x21,
+    FIG_GIF_BLOCK_IMAGE = 0x2C,
+    FIG_GIF_BLOCK_TERMINATOR = 0x3B,
 
     /* Extension types */
-    GIF_EXT_GRAPHICS_CONTROL = 0xF9,
-    GIF_EXT_PLAIN_TEXT = 0x01,
-    GIF_EXT_COMMENT = 0xFE,
-    GIF_EXT_APPLICATION = 0xFF,
+    FIG_GIF_EXT_GRAPHICS_CONTROL = 0xF9,
+    FIG_GIF_EXT_PLAIN_TEXT = 0x01,
+    FIG_GIF_EXT_COMMENT = 0xFE,
+    FIG_GIF_EXT_APPLICATION = 0xFF,
 
     /* Logical screen descriptor packed fields */
-    GIF_SCREEN_DESC_GLOBAL_COLOR = 0x80,
-    GIF_IMAGE_DESC_COLOR_RESOLUTION_MASK = 0x70,
-    GIF_SCREEN_DESC_PALETTE_DEPTH_MASK = 0x07,
+    FIG_GIF_SCREEN_DESC_GLOBAL_COLOR = 0x80,
+    FIG_GIF_IMAGE_DESC_COLOR_RESOLUTION_MASK = 0x70,
+    FIG_GIF_SCREEN_DESC_PALETTE_DEPTH_MASK = 0x07,
 
     /* Image descriptor packed fields */
-    GIF_IMAGE_DESC_LOCAL_COLOR = 0x80,
-    GIF_IMAGE_DESC_INTERLACE = 0x40,
-    GIF_IMAGE_DESC_PALETTE_DEPTH_MASK = 0x07,
+    FIG_GIF_IMAGE_DESC_LOCAL_COLOR = 0x80,
+    FIG_GIF_IMAGE_DESC_INTERLACE = 0x40,
+    FIG_GIF_IMAGE_DESC_PALETTE_DEPTH_MASK = 0x07,
 
     /* Graphics control packed fields */
-    GIF_GRAPHICS_CTRL_TRANSPARENCY = 0x01,
-    GIF_GRAPHICS_CTRL_DISPOSAL_MASK = 0x1C,
-    GIF_GRAPHICS_CTRL_DISPOSAL_SHIFT = 2,
+    FIG_GIF_GRAPHICS_CTRL_TRANSPARENCY = 0x01,
+    FIG_GIF_GRAPHICS_CTRL_DISPOSAL_MASK = 0x1C,
+    FIG_GIF_GRAPHICS_CTRL_DISPOSAL_SHIFT = 2,
 
     /* Application extension definitions */
-    GIF_APPLICATION_SIGNATURE_LENGTH = 11,
-    GIF_APPLICATION_SIGNATURE_ID_LENGTH = 8,
-    GIF_APPLICATION_SIGNATURE_AUTH_CODE_LENGTH = 3,
+    FIG_GIF_APPLICATION_SIGNATURE_LENGTH = 11,
+    FIG_GIF_APPLICATION_SIGNATURE_ID_LENGTH = 8,
+    FIG_GIF_APPLICATION_SIGNATURE_AUTH_CODE_LENGTH = 3,
 
     /* LZW definitions */
-    GIF_LZW_MAX_BITS = 12,
-    GIF_LZW_MAX_CODES = (1 << GIF_LZW_MAX_BITS),
-    GIF_LZW_MAX_STACK_SIZE = (1 << GIF_LZW_MAX_BITS) + 1,
-    GIF_LZW_NULL_CODE = 0xCACA
+    FIG_GIF_LZW_MAX_BITS = 12,
+    FIG_GIF_LZW_MAX_CODES = (1 << FIG_GIF_LZW_MAX_BITS),
+    FIG_GIF_LZW_MAX_STACK_SIZE = (1 << FIG_GIF_LZW_MAX_BITS) + 1,
+    FIG_GIF_LZW_NULL_CODE = 0xCACA
 };
-const char * const GIF_HEADER_VERSION_87a = "GIF87a";
-const char * const GIF_HEADER_VERSION_89a = "GIF89a";
-const char * const GIF_APPLICATION_SIGNATURE_NETSCAPE = "NETSCAPE2.0";
+const char * const FIG_GIF_HEADER_VERSION_87a = "GIF87a";
+const char * const FIG_GIF_HEADER_VERSION_89a = "GIF89a";
+const char * const FIG_GIF_APPLICATION_SIGNATURE_NETSCAPE = "NETSCAPE2.0";
 #endif
 
 #ifdef FIG_LOAD_GIF
 typedef enum {
-    GIF_DISPOSAL_UNSPECIFIED,
-    GIF_DISPOSAL_NONE,
-    GIF_DISPOSAL_BACKGROUND,
-    GIF_DISPOSAL_PREVIOUS,
-    GIF_DISPOSAL_COUNT
-} gif_disposal_t;
+    FIG_GIF_DISPOSAL_UNSPECIFIED,
+    FIG_GIF_DISPOSAL_NONE,
+    FIG_GIF_DISPOSAL_BACKGROUND,
+    FIG_GIF_DISPOSAL_PREVIOUS,
+    FIG_GIF_DISPOSAL_COUNT
+} fig_gif_disposal_t_;
 
 typedef struct {
     fig_uint16_t width;
@@ -64,7 +64,7 @@ typedef struct {
     size_t global_colors;
     fig_uint8_t background_index;
     fig_uint8_t aspect;
-} gif_screen_descriptor;
+} fig_gif_screen_descriptor_;
 
 typedef struct {
     fig_uint16_t x;
@@ -73,30 +73,30 @@ typedef struct {
     fig_uint16_t height;
     size_t local_colors;
     fig_bool_t interlace;
-} gif_image_descriptor;
+} fig_gif_image_descriptor_;
 
 typedef struct {
     fig_uint16_t delay;
     fig_bool_t transparent;
     fig_uint8_t transparency_index;
-    gif_disposal_t disposal;
-} gif_graphics_control;
+    fig_gif_disposal_t_ disposal;
+} fig_gif_graphics_control_;
 
-static fig_bool_t read_header(fig_input *input, fig_uint8_t *version) {
-    char buffer[GIF_HEADER_LENGTH];
+static fig_bool_t fig_gif_read_header_(fig_input *input, fig_uint8_t *version) {
+    char buffer[FIG_GIF_HEADER_LENGTH];
 
-    if(fig_input_read(input, buffer, GIF_HEADER_LENGTH, 1) != 1) {
+    if(fig_input_read(input, buffer, FIG_GIF_HEADER_LENGTH, 1) != 1) {
         return 0;
     }
-    if(memcmp(buffer, GIF_HEADER_VERSION_87a, GIF_HEADER_LENGTH) != 0
-    && memcmp(buffer, GIF_HEADER_VERSION_89a, GIF_HEADER_LENGTH) != 0) {
+    if(memcmp(buffer, FIG_GIF_HEADER_VERSION_87a, FIG_GIF_HEADER_LENGTH) != 0
+    && memcmp(buffer, FIG_GIF_HEADER_VERSION_89a, FIG_GIF_HEADER_LENGTH) != 0) {
         return 0;
     }
     *version = (buffer[3] - '0') * 10 + (buffer[4] - '0');
     return 1;
 }
 
-static fig_bool_t read_screen_descriptor(fig_input *input, gif_screen_descriptor *screen_desc) {
+static fig_bool_t fig_gif_read_screen_descriptor_(fig_input *input, fig_gif_screen_descriptor_ *screen_desc) {
     fig_uint8_t packed_fields;
 
     if(fig_input_read_le_u16(input, &screen_desc->width)
@@ -104,8 +104,8 @@ static fig_bool_t read_screen_descriptor(fig_input *input, gif_screen_descriptor
     && fig_input_read_u8(input, &packed_fields)
     && fig_input_read_u8(input, &screen_desc->background_index)
     && fig_input_read_u8(input, &screen_desc->aspect)) {
-        if((packed_fields & GIF_SCREEN_DESC_GLOBAL_COLOR) != 0) {
-            screen_desc->global_colors = (1 << ((packed_fields & GIF_SCREEN_DESC_PALETTE_DEPTH_MASK) + 1));
+        if((packed_fields & FIG_GIF_SCREEN_DESC_GLOBAL_COLOR) != 0) {
+            screen_desc->global_colors = (1 << ((packed_fields & FIG_GIF_SCREEN_DESC_PALETTE_DEPTH_MASK) + 1));
         } else {
             screen_desc->global_colors = 0;
         }
@@ -115,7 +115,7 @@ static fig_bool_t read_screen_descriptor(fig_input *input, gif_screen_descriptor
     }
 }
 
-static fig_bool_t read_image_descriptor(fig_input *input, gif_image_descriptor *image_desc) {
+static fig_bool_t fig_gif_read_image_descriptor_(fig_input *input, fig_gif_image_descriptor_ *image_desc) {
     fig_uint8_t packed_fields;
 
     if(fig_input_read_le_u16(input, &image_desc->x)
@@ -123,19 +123,19 @@ static fig_bool_t read_image_descriptor(fig_input *input, gif_image_descriptor *
     && fig_input_read_le_u16(input, &image_desc->width)
     && fig_input_read_le_u16(input, &image_desc->height)
     && fig_input_read_u8(input, &packed_fields)) {
-        if((packed_fields & GIF_IMAGE_DESC_LOCAL_COLOR) != 0) {
-            image_desc->local_colors = 1 << ((packed_fields & GIF_IMAGE_DESC_PALETTE_DEPTH_MASK) + 1);
+        if((packed_fields & FIG_GIF_IMAGE_DESC_LOCAL_COLOR) != 0) {
+            image_desc->local_colors = 1 << ((packed_fields & FIG_GIF_IMAGE_DESC_PALETTE_DEPTH_MASK) + 1);
         } else {
             image_desc->local_colors = 0;
         }
-        image_desc->interlace = (packed_fields & GIF_IMAGE_DESC_INTERLACE) != 0;
+        image_desc->interlace = (packed_fields & FIG_GIF_IMAGE_DESC_INTERLACE) != 0;
         return 1;
     } else {
         return 0;
     }
 }
 
-static fig_bool_t read_sub_block(fig_state *state, fig_input *input, fig_uint8_t *block_size, fig_uint8_t *block, fig_uint8_t max_size, const char *failure_message) {
+static fig_bool_t fig_gif_read_sub_block_(fig_state *state, fig_input *input, fig_uint8_t *block_size, fig_uint8_t *block, fig_uint8_t max_size, const char *failure_message) {
     if(!fig_input_read_u8(input, block_size)
     || *block_size > max_size
     || fig_input_read(input, block, *block_size, 1) != 1) {
@@ -145,7 +145,7 @@ static fig_bool_t read_sub_block(fig_state *state, fig_input *input, fig_uint8_t
     return 1;
 }
 
-static fig_bool_t skip_sub_blocks(fig_input *input) {
+static fig_bool_t fig_gif_skip_sub_blocks_(fig_input *input) {
     fig_uint8_t length;
 
     do {
@@ -157,7 +157,7 @@ static fig_bool_t skip_sub_blocks(fig_input *input) {
     return 1;
 }
 
-static fig_bool_t read_graphics_control(fig_input *input, gif_graphics_control *gfx_ctrl) {
+static fig_bool_t fig_gif_read_graphics_control_(fig_input *input, fig_gif_graphics_control_ *gfx_ctrl) {
     fig_uint8_t length;
     fig_uint8_t packed_fields;
 
@@ -166,20 +166,20 @@ static fig_bool_t read_graphics_control(fig_input *input, gif_graphics_control *
     && fig_input_read_u8(input, &packed_fields)
     && fig_input_read_le_u16(input, &gfx_ctrl->delay)
     && fig_input_read_u8(input, &gfx_ctrl->transparency_index)) {
-        gfx_ctrl->transparent = packed_fields & GIF_GRAPHICS_CTRL_TRANSPARENCY;
-        gfx_ctrl->disposal = (gif_disposal_t) ((packed_fields & GIF_GRAPHICS_CTRL_DISPOSAL_MASK) >> GIF_GRAPHICS_CTRL_DISPOSAL_SHIFT);
-        if(gfx_ctrl->disposal >= GIF_DISPOSAL_COUNT) {
-            gfx_ctrl->disposal = GIF_DISPOSAL_UNSPECIFIED;
+        gfx_ctrl->transparent = packed_fields & FIG_GIF_GRAPHICS_CTRL_TRANSPARENCY;
+        gfx_ctrl->disposal = (fig_gif_disposal_t_) ((packed_fields & FIG_GIF_GRAPHICS_CTRL_DISPOSAL_MASK) >> FIG_GIF_GRAPHICS_CTRL_DISPOSAL_SHIFT);
+        if(gfx_ctrl->disposal >= FIG_GIF_DISPOSAL_COUNT) {
+            gfx_ctrl->disposal = FIG_GIF_DISPOSAL_UNSPECIFIED;
         }
 
-        if(skip_sub_blocks(input)) {
+        if(fig_gif_skip_sub_blocks_(input)) {
             return 1;
         }
     }
     return 0;
 }
 
-static fig_bool_t read_looping_control(fig_input *input, fig_uint16_t *loop_count) {
+static fig_bool_t fig_gif_read_looping_control_(fig_input *input, fig_uint16_t *loop_count) {
     fig_uint8_t length;
     fig_uint8_t ignore;
     if(fig_input_read_u8(input, &length)
@@ -191,8 +191,7 @@ static fig_bool_t read_looping_control(fig_input *input, fig_uint16_t *loop_coun
     return 0;
 }
 
-
-static fig_bool_t read_palette(fig_input *input, size_t size, fig_palette *palette) {
+static fig_bool_t fig_gif_read_palette_(fig_input *input, size_t size, fig_palette *palette) {
     size_t i, j;
     fig_uint8_t buffer[256 * 3];
 
@@ -207,15 +206,15 @@ static fig_bool_t read_palette(fig_input *input, size_t size, fig_palette *palet
     return 1;
 }
 
-static void error_lzw_stack_overflow(fig_state *state) {
+static void fig_gif_error_lzw_stack_overflow_(fig_state *state) {
     fig_state_set_error(state, "overflowed available LZW character stack");
 }
 
-static void error_lzw_invalid_code(fig_state *state) {
+static void fig_gif_error_lzw_invalid_code_(fig_state *state) {
     fig_state_set_error(state, "invalid LZW code encountered");
 }
 
-static fig_bool_t read_image_data(fig_state *state, fig_input *input, gif_image_descriptor *image_desc, fig_uint8_t *index_data) {
+static fig_bool_t fig_gif_read_image_data_(fig_state *state, fig_input *input, fig_gif_image_descriptor_ *image_desc, fig_uint8_t *index_data) {
     fig_uint8_t min_code_size;
     fig_uint16_t clear;
     fig_uint16_t eoi;
@@ -223,9 +222,9 @@ static fig_bool_t read_image_data(fig_state *state, fig_input *input, gif_image_
     fig_uint16_t code_mask;
     fig_uint16_t avail;
     fig_uint16_t old_code;
-    fig_uint16_t prefix_codes[GIF_LZW_MAX_CODES];
-    fig_uint8_t suffix_chars[GIF_LZW_MAX_CODES];
-    fig_uint8_t char_stack[GIF_LZW_MAX_STACK_SIZE];
+    fig_uint16_t prefix_codes[FIG_GIF_LZW_MAX_CODES];
+    fig_uint8_t suffix_chars[FIG_GIF_LZW_MAX_CODES];
+    fig_uint8_t char_stack[FIG_GIF_LZW_MAX_STACK_SIZE];
     fig_uint16_t char_stack_size;
     fig_uint8_t sub_block_length;
     fig_uint32_t accumulator;
@@ -240,7 +239,7 @@ static fig_bool_t read_image_data(fig_state *state, fig_input *input, gif_image_
         fig_state_set_error(state, "failed to read minimum LZW code size");
         return 0;
     }
-    if(min_code_size > GIF_LZW_MAX_BITS) {
+    if(min_code_size > FIG_GIF_LZW_MAX_BITS) {
         fig_state_set_error(state, "minimum LZW code size is too large");
         return 0;
     }
@@ -250,13 +249,13 @@ static fig_bool_t read_image_data(fig_state *state, fig_input *input, gif_image_
     code_size = min_code_size + 1;
     code_mask = (1 << code_size) - 1;
     avail = eoi + 1;
-    old_code = GIF_LZW_NULL_CODE;
+    old_code = FIG_GIF_LZW_NULL_CODE;
     
     {
         fig_uint16_t i;
 
         for(i = 0; i < clear; ++i) {
-            prefix_codes[i] = GIF_LZW_NULL_CODE;
+            prefix_codes[i] = FIG_GIF_LZW_NULL_CODE;
             suffix_chars[i] = i & 0xFF;
         }
     }
@@ -302,17 +301,17 @@ static fig_bool_t read_image_data(fig_state *state, fig_input *input, gif_image_
                 code_size = min_code_size + 1;
                 code_mask = (1 << code_size) - 1;
                 avail = eoi + 1;
-                old_code = GIF_LZW_NULL_CODE;
+                old_code = FIG_GIF_LZW_NULL_CODE;
             } else if(code == eoi) {
                 fig_input_seek(input, sub_block_length, FIG_SEEK_CUR);
-                return skip_sub_blocks(input);
-            } else if(old_code == GIF_LZW_NULL_CODE) {
+                return fig_gif_skip_sub_blocks_(input);
+            } else if(old_code == FIG_GIF_LZW_NULL_CODE) {
                 if(code >= avail) {
-                    error_lzw_invalid_code(state);
+                    fig_gif_error_lzw_invalid_code_(state);
                     return 0;
                 }
-                if(char_stack_size >= GIF_LZW_MAX_STACK_SIZE) {
-                    error_lzw_stack_overflow(state);
+                if(char_stack_size >= FIG_GIF_LZW_MAX_STACK_SIZE) {
+                    fig_gif_error_lzw_stack_overflow_(state);
                     return 0;
                 }
 
@@ -323,20 +322,20 @@ static fig_bool_t read_image_data(fig_state *state, fig_input *input, gif_image_
                 fig_uint16_t current_code = code;
 
                 if(current_code == avail) {
-                    if(char_stack_size >= GIF_LZW_MAX_STACK_SIZE) {
-                        error_lzw_stack_overflow(state);
+                    if(char_stack_size >= FIG_GIF_LZW_MAX_STACK_SIZE) {
+                        fig_gif_error_lzw_stack_overflow_(state);
                         return 0;
                     }
                     char_stack[char_stack_size++] = first_char;
                     current_code = old_code;
                 }
                 while(current_code >= clear) {
-                    if(current_code >= GIF_LZW_MAX_CODES) {
-                        error_lzw_invalid_code(state);
+                    if(current_code >= FIG_GIF_LZW_MAX_CODES) {
+                        fig_gif_error_lzw_invalid_code_(state);
                         return 0;
                     }
-                    if(char_stack_size >= GIF_LZW_MAX_STACK_SIZE) {
-                        error_lzw_stack_overflow(state);
+                    if(char_stack_size >= FIG_GIF_LZW_MAX_STACK_SIZE) {
+                        fig_gif_error_lzw_stack_overflow_(state);
                         return 0;
                     }
                     char_stack[char_stack_size++] = suffix_chars[current_code];
@@ -345,17 +344,17 @@ static fig_bool_t read_image_data(fig_state *state, fig_input *input, gif_image_
 
                 first_char = suffix_chars[current_code];
 
-                if(char_stack_size >= GIF_LZW_MAX_STACK_SIZE) {
-                    error_lzw_stack_overflow(state);
+                if(char_stack_size >= FIG_GIF_LZW_MAX_STACK_SIZE) {
+                    fig_gif_error_lzw_stack_overflow_(state);
                     return 0;
                 }
                 char_stack[char_stack_size++] = first_char;
 
-                if(avail < GIF_LZW_MAX_CODES) {
+                if(avail < FIG_GIF_LZW_MAX_CODES) {
                     prefix_codes[avail] = old_code;
                     suffix_chars[avail] = first_char;
                     ++avail;
-                    if((avail & code_mask) == 0 && avail < GIF_LZW_MAX_CODES) {
+                    if((avail & code_mask) == 0 && avail < FIG_GIF_LZW_MAX_CODES) {
                         ++code_size;
                         code_mask = (1 << code_size) - 1;
                     }
@@ -363,7 +362,7 @@ static fig_bool_t read_image_data(fig_state *state, fig_input *input, gif_image_
 
                 old_code = code;
             } else {
-                error_lzw_invalid_code(state);
+                fig_gif_error_lzw_invalid_code_(state);
                 return 0;
             }
 
@@ -392,12 +391,12 @@ static fig_bool_t read_image_data(fig_state *state, fig_input *input, gif_image_
     }
 }
 
-static fig_disposal_t convert_gif_disposal_to_fig_disposal(gif_disposal_t disposal) {
+static fig_disposal_t fig_convert_gif_disposal_to_fig_disposal_(fig_gif_disposal_t_ disposal) {
     switch(disposal) {
-        case GIF_DISPOSAL_UNSPECIFIED: return FIG_DISPOSAL_UNSPECIFIED;
-        case GIF_DISPOSAL_NONE: return FIG_DISPOSAL_NONE;
-        case GIF_DISPOSAL_BACKGROUND: return FIG_DISPOSAL_BACKGROUND;
-        case GIF_DISPOSAL_PREVIOUS: return FIG_DISPOSAL_PREVIOUS;
+        case FIG_GIF_DISPOSAL_UNSPECIFIED: return FIG_DISPOSAL_UNSPECIFIED;
+        case FIG_GIF_DISPOSAL_NONE: return FIG_DISPOSAL_NONE;
+        case FIG_GIF_DISPOSAL_BACKGROUND: return FIG_DISPOSAL_BACKGROUND;
+        case FIG_GIF_DISPOSAL_PREVIOUS: return FIG_DISPOSAL_PREVIOUS;
         default:
             FIG_ASSERT(0);
             return FIG_DISPOSAL_UNSPECIFIED;
@@ -406,8 +405,8 @@ static fig_disposal_t convert_gif_disposal_to_fig_disposal(gif_disposal_t dispos
 
 fig_animation *fig_load_gif(fig_state *state, fig_input *input) {
     fig_uint8_t version;
-    gif_screen_descriptor screen_desc;
-    gif_graphics_control gfx_ctrl;    
+    fig_gif_screen_descriptor_ screen_desc;
+    fig_gif_graphics_control_ gfx_ctrl;    
     fig_animation *animation;
     
     if(input == NULL) {
@@ -418,11 +417,11 @@ fig_animation *fig_load_gif(fig_state *state, fig_input *input) {
     memset(&screen_desc, 0, sizeof(screen_desc));
     memset(&gfx_ctrl, 0, sizeof(gfx_ctrl));
 
-    if(!read_header(input, &version)) {
+    if(!fig_gif_read_header_(input, &version)) {
         fig_state_set_error(state, "failed to read header");
         return NULL;
     }
-    if(!read_screen_descriptor(input, &screen_desc)) {
+    if(!fig_gif_read_screen_descriptor_(input, &screen_desc)) {
         fig_state_set_error(state, "failed to read screen descriptor");
         return NULL;
     }
@@ -434,7 +433,7 @@ fig_animation *fig_load_gif(fig_state *state, fig_input *input) {
     fig_animation_set_dimensions(animation, screen_desc.width, screen_desc.height);
 
     if(screen_desc.global_colors > 0
-    && !read_palette(input, screen_desc.global_colors, fig_animation_get_palette(animation))) {
+    && !fig_gif_read_palette_(input, screen_desc.global_colors, fig_animation_get_palette(animation))) {
         fig_state_set_error(state, "failed to read global palette");
         return fig_animation_free(animation), NULL;
     }
@@ -447,7 +446,7 @@ fig_animation *fig_load_gif(fig_state *state, fig_input *input) {
             return fig_animation_free(animation), NULL;
         }
         switch(block_type) {
-            case GIF_BLOCK_EXTENSION: {
+            case FIG_GIF_BLOCK_EXTENSION: {
                 fig_uint8_t extension_type;
 
                 if(!fig_input_read_u8(input, &extension_type)) {
@@ -455,37 +454,37 @@ fig_animation *fig_load_gif(fig_state *state, fig_input *input) {
                     return fig_animation_free(animation), NULL;
                 }
                 switch(extension_type) {
-                    case GIF_EXT_GRAPHICS_CONTROL: {
-                        if(!read_graphics_control(input, &gfx_ctrl)) {
+                    case FIG_GIF_EXT_GRAPHICS_CONTROL: {
+                        if(!fig_gif_read_graphics_control_(input, &gfx_ctrl)) {
                             fig_state_set_error(state, "failed to read graphics control block");
                             return fig_animation_free(animation), NULL;
                         }
                         break;
                     }
-                    /*case GIF_EXT_PLAIN_TEXT:
-                    case GIF_EXT_COMMENT:*/
-                    case GIF_EXT_APPLICATION: {
+                    /*case FIG_GIF_EXT_PLAIN_TEXT:
+                    case FIG_GIF_EXT_COMMENT:*/
+                    case FIG_GIF_EXT_APPLICATION: {
                         fig_uint8_t application_block_size;
-                        fig_uint8_t application_block[GIF_APPLICATION_SIGNATURE_LENGTH];
-                        if(!read_sub_block(state, input, &application_block_size, application_block, sizeof(application_block), "failed to read application signature")) {
+                        fig_uint8_t application_block[FIG_GIF_APPLICATION_SIGNATURE_LENGTH];
+                        if(!fig_gif_read_sub_block_(state, input, &application_block_size, application_block, sizeof(application_block), "failed to read application signature")) {
                             return fig_animation_free(animation), NULL;
                         }
-                        if(memcmp(application_block, GIF_APPLICATION_SIGNATURE_NETSCAPE, GIF_APPLICATION_SIGNATURE_LENGTH) == 0) {
+                        if(memcmp(application_block, FIG_GIF_APPLICATION_SIGNATURE_NETSCAPE, FIG_GIF_APPLICATION_SIGNATURE_LENGTH) == 0) {
                             fig_uint16_t loop_count;
-                            if(!read_looping_control(input, &loop_count)) {
+                            if(!fig_gif_read_looping_control_(input, &loop_count)) {
                                 fig_state_set_error(state, "failed to read looping control block");
                                 return fig_animation_free(animation), NULL;
                             }
                             fig_animation_set_loop_count(animation, loop_count);
                         }
-                        if(!skip_sub_blocks(input)) {
+                        if(!fig_gif_skip_sub_blocks_(input)) {
                             fig_state_set_error(state, "failed to skip extension block");
                             return fig_animation_free(animation), NULL;
                         }
                         break;
                     }
                     default: {
-                        if(!skip_sub_blocks(input)) {
+                        if(!fig_gif_skip_sub_blocks_(input)) {
                             fig_state_set_error(state, "failed to skip extension block");
                             return fig_animation_free(animation), NULL;
                         }
@@ -494,12 +493,12 @@ fig_animation *fig_load_gif(fig_state *state, fig_input *input) {
                 }
                 break;
             }
-            case GIF_BLOCK_IMAGE: {
+            case FIG_GIF_BLOCK_IMAGE: {
                 fig_image *image;
-                gif_image_descriptor image_desc;
+                fig_gif_image_descriptor_ image_desc;
                 
                 memset(&image_desc, 0, sizeof(image_desc));
-                if(!read_image_descriptor(input, &image_desc)) {
+                if(!fig_gif_read_image_descriptor_(input, &image_desc)) {
                     fig_state_set_error(state, "failed to read frame image descriptor");
                 }
                 image = fig_animation_add_image(animation);
@@ -511,7 +510,7 @@ fig_animation *fig_load_gif(fig_state *state, fig_input *input) {
                     return fig_animation_free(animation), NULL;
                 }
                 if(image_desc.local_colors > 0
-                && !read_palette(input, image_desc.local_colors, fig_image_get_palette(image))) {
+                && !fig_gif_read_palette_(input, image_desc.local_colors, fig_image_get_palette(image))) {
                     fig_state_set_error(state, "failed to read frame local palette");
                     return fig_animation_free(animation), NULL;
                 }
@@ -521,15 +520,15 @@ fig_animation *fig_load_gif(fig_state *state, fig_input *input) {
                 fig_image_set_transparent(image, gfx_ctrl.transparent);
                 fig_image_set_transparency_index(image, gfx_ctrl.transparency_index);
                 fig_image_set_delay(image, gfx_ctrl.delay);
-                fig_image_set_disposal(image, convert_gif_disposal_to_fig_disposal(gfx_ctrl.disposal));
+                fig_image_set_disposal(image, fig_convert_gif_disposal_to_fig_disposal_(gfx_ctrl.disposal));
 
-                if(!read_image_data(state, input, &image_desc, fig_image_get_indexed_data(image))) {
+                if(!fig_gif_read_image_data_(state, input, &image_desc, fig_image_get_indexed_data(image))) {
                     return fig_animation_free(animation), NULL;
                 }
 
                 break;
             }
-            case GIF_BLOCK_TERMINATOR: {
+            case FIG_GIF_BLOCK_TERMINATOR: {
                 fig_animation_render_images(animation);
                 return animation;
             }
@@ -542,11 +541,11 @@ fig_animation *fig_load_gif(fig_state *state, fig_input *input) {
 #endif
 
 #ifdef FIG_SAVE_GIF
-static void error_write_failed(fig_state *state) {
+static void fig_gif_error_write_failed_(fig_state *state) {
     fig_state_set_error(state, "failed to write data");
 }
 
-static size_t log2(size_t value) {
+static size_t fig_gif_log2_(size_t value) {
     size_t result = 0;
     while(value >>= 1) {
         result++;
@@ -554,7 +553,7 @@ static size_t log2(size_t value) {
     return result;
 }
 
-static fig_bool_t write_palette(fig_state *state, fig_output *output, fig_palette *palette, size_t color_depth) {
+static fig_bool_t fig_gif_write_palette_(fig_state *state, fig_output *output, fig_palette *palette, size_t color_depth) {
     fig_uint8_t rgb[3];
     size_t i;
     size_t color_count = fig_palette_count_colors(palette);
@@ -571,7 +570,7 @@ static fig_bool_t write_palette(fig_state *state, fig_output *output, fig_palett
         }
 
         if(fig_output_write(output, rgb, 3, 1) != 1) {
-            error_write_failed(state);
+            fig_gif_error_write_failed_(state);
             return 0;
         }
     }
@@ -579,43 +578,43 @@ static fig_bool_t write_palette(fig_state *state, fig_output *output, fig_palett
     return 1;
 }
 
-static size_t get_color_depth(fig_palette *palette) {
-    size_t color_depth = log2(fig_palette_count_colors(palette));
+static size_t fig_gif_get_color_depth_(fig_palette *palette) {
+    size_t color_depth = fig_gif_log2_(fig_palette_count_colors(palette));
     if(color_depth == 0) {
         color_depth++;
     }
     return color_depth;
 }
 
-static fig_bool_t block_flush(fig_state *state, fig_output *output, fig_uint8_t *block) {
+static fig_bool_t fig_gif_block_flush_(fig_state *state, fig_output *output, fig_uint8_t *block) {
     size_t length = block[0];
     if(length == 0
     || fig_output_write(output, block, length + 1, 1) == 1) {
         block[0] = 0;
         return 1;
     } else {
-        error_write_failed(state);
+        fig_gif_error_write_failed_(state);
         return 0;
     }
 }
 
-static fig_bool_t block_write_u8(fig_state *state, fig_output *output, fig_uint8_t *block, fig_uint8_t value) {
+static fig_bool_t fig_gif_block_write_u8_(fig_state *state, fig_output *output, fig_uint8_t *block, fig_uint8_t value) {
     block[++block[0]] = value;
     if(block[0] == 0xFF) {
-        return block_flush(state, output, block);
+        return fig_gif_block_flush_(state, output, block);
     } else {
         return 1;
     }
 }
 
-static fig_bool_t block_write_bits(fig_state *state, fig_output *output, fig_uint8_t *block, fig_uint32_t *accumulator, fig_uint8_t *accumulator_length, fig_uint16_t value, fig_uint8_t value_length) {
+static fig_bool_t fig_gif_block_write_bits_(fig_state *state, fig_output *output, fig_uint8_t *block, fig_uint32_t *accumulator, fig_uint8_t *accumulator_length, fig_uint16_t value, fig_uint8_t value_length) {
     fig_uint8_t current_accumulator_length = *accumulator_length;
     fig_uint32_t current_accumulator = *accumulator | ((fig_uint32_t) value << current_accumulator_length);
 
     current_accumulator_length += value_length;
 
     while(current_accumulator_length >= 8) {
-        if(!block_write_u8(state, output, block, current_accumulator & 0xFF)) {
+        if(!fig_gif_block_write_u8_(state, output, block, current_accumulator & 0xFF)) {
             return 0;
         }
 
@@ -628,7 +627,7 @@ static fig_bool_t block_write_bits(fig_state *state, fig_output *output, fig_uin
     return 1;
 }
 
-static fig_bool_t write_image_data(fig_state *state, fig_output *output, fig_image *image, fig_palette *palette) {
+static fig_bool_t fig_gif_write_image_data_(fig_state *state, fig_output *output, fig_image *image, fig_palette *palette) {
     fig_uint8_t min_code_size;
     fig_uint16_t clear;
     fig_uint16_t eoi;
@@ -636,8 +635,8 @@ static fig_bool_t write_image_data(fig_state *state, fig_output *output, fig_ima
     fig_uint16_t code_mask;
     fig_uint16_t avail;
     fig_uint16_t old_code;
-    fig_uint16_t prefix_codes[GIF_LZW_MAX_CODES];
-    fig_uint8_t suffix_chars[GIF_LZW_MAX_CODES];
+    fig_uint16_t prefix_codes[FIG_GIF_LZW_MAX_CODES];
+    fig_uint8_t suffix_chars[FIG_GIF_LZW_MAX_CODES];
     fig_uint8_t block[256];
     size_t pixel_index;
     size_t pixel_count;
@@ -647,7 +646,7 @@ static fig_bool_t write_image_data(fig_state *state, fig_output *output, fig_ima
     fig_uint32_t accumulator;
     fig_uint8_t accumulator_length;
 
-    color_depth = get_color_depth(palette);
+    color_depth = fig_gif_get_color_depth_(palette);
     padded_palette_size = 1 << color_depth;
     min_code_size = color_depth & 0xFF;
 
@@ -660,7 +659,7 @@ static fig_bool_t write_image_data(fig_state *state, fig_output *output, fig_ima
     code_size = min_code_size + 1;
     code_mask = (1 << code_size) - 1;
     avail = eoi + 1;
-    old_code = GIF_LZW_NULL_CODE;
+    old_code = FIG_GIF_LZW_NULL_CODE;
     accumulator = 0;
     accumulator_length = 0;
     block[0] = 0;
@@ -669,16 +668,16 @@ static fig_bool_t write_image_data(fig_state *state, fig_output *output, fig_ima
         fig_uint16_t i;
 
         for(i = 0; i < clear; ++i) {
-            prefix_codes[i] = GIF_LZW_NULL_CODE;
+            prefix_codes[i] = FIG_GIF_LZW_NULL_CODE;
             suffix_chars[i] = i & 0xFF;
         }
     }
 
     if(!fig_output_write_u8(output, min_code_size)) {
-        error_write_failed(state);
+        fig_gif_error_write_failed_(state);
         return 0;
     }
-    if(!block_write_bits(state, output, block, &accumulator, &accumulator_length, clear, code_size)) {
+    if(!fig_gif_block_write_bits_(state, output, block, &accumulator, &accumulator_length, clear, code_size)) {
         return 0;
     }
 
@@ -692,7 +691,7 @@ static fig_bool_t write_image_data(fig_state *state, fig_output *output, fig_ima
             return 0;
         }        
 
-        if(old_code == GIF_LZW_NULL_CODE) {
+        if(old_code == FIG_GIF_LZW_NULL_CODE) {
             old_code = pixel;
         } else {
             fig_uint16_t i;
@@ -707,12 +706,12 @@ static fig_bool_t write_image_data(fig_state *state, fig_output *output, fig_ima
             if(found) {
                 old_code = i;
             } else {
-                if(!block_write_bits(state, output, block, &accumulator, &accumulator_length, old_code, code_size)) {
+                if(!fig_gif_block_write_bits_(state, output, block, &accumulator, &accumulator_length, old_code, code_size)) {
                     return 0;
                 }
 
-                if(avail >= GIF_LZW_MAX_CODES) {
-                    if(!block_write_bits(state, output, block, &accumulator, &accumulator_length, clear, code_size)) {
+                if(avail >= FIG_GIF_LZW_MAX_CODES) {
+                    if(!fig_gif_block_write_bits_(state, output, block, &accumulator, &accumulator_length, clear, code_size)) {
                         return 0;
                     }
 
@@ -735,13 +734,13 @@ static fig_bool_t write_image_data(fig_state *state, fig_output *output, fig_ima
         }
     }
 
-    if(!block_write_bits(state, output, block, &accumulator, &accumulator_length, old_code, code_size)
-    || !block_write_bits(state, output, block, &accumulator, &accumulator_length, eoi, code_size)) {
+    if(!fig_gif_block_write_bits_(state, output, block, &accumulator, &accumulator_length, old_code, code_size)
+    || !fig_gif_block_write_bits_(state, output, block, &accumulator, &accumulator_length, eoi, code_size)) {
         return 0;
     }
 
     while(accumulator_length > 0) {
-        if(!block_write_u8(state, output, block, accumulator & 0xFF)) {
+        if(!fig_gif_block_write_u8_(state, output, block, accumulator & 0xFF)) {
             return 0;
         }        
         if(accumulator_length > 8) {
@@ -753,21 +752,21 @@ static fig_bool_t write_image_data(fig_state *state, fig_output *output, fig_ima
         }
     }
 
-    if(!block_flush(state, output, block)
+    if(!fig_gif_block_flush_(state, output, block)
     || !fig_output_write_u8(output, 0)) {
-        error_write_failed(state);
+        fig_gif_error_write_failed_(state);
         return 0;
     }
 
     return 1;
 }
 
-static gif_disposal_t convert_fig_disposal_to_gif_disposal(fig_disposal_t disposal) {
+static fig_gif_disposal_t_ fig_convert_fig_disposal_to_gif_disposal_(fig_disposal_t disposal) {
     switch(disposal) {
-        case FIG_DISPOSAL_UNSPECIFIED: return GIF_DISPOSAL_UNSPECIFIED;
-        case FIG_DISPOSAL_NONE: return GIF_DISPOSAL_NONE;
-        case FIG_DISPOSAL_BACKGROUND: return GIF_DISPOSAL_BACKGROUND;
-        case FIG_DISPOSAL_PREVIOUS: return GIF_DISPOSAL_PREVIOUS;
+        case FIG_DISPOSAL_UNSPECIFIED: return FIG_GIF_DISPOSAL_UNSPECIFIED;
+        case FIG_DISPOSAL_NONE: return FIG_GIF_DISPOSAL_NONE;
+        case FIG_DISPOSAL_BACKGROUND: return FIG_GIF_DISPOSAL_BACKGROUND;
+        case FIG_DISPOSAL_PREVIOUS: return FIG_GIF_DISPOSAL_PREVIOUS;
         default:
             FIG_ASSERT(0);
             return FIG_DISPOSAL_UNSPECIFIED;
@@ -791,22 +790,22 @@ fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *ani
         return 0;
     }
 
-    if(fig_output_write(output, GIF_HEADER_VERSION_89a, GIF_HEADER_LENGTH, 1) != 1) {
-        error_write_failed(state);
+    if(fig_output_write(output, FIG_GIF_HEADER_VERSION_89a, FIG_GIF_HEADER_LENGTH, 1) != 1) {
+        fig_gif_error_write_failed_(state);
         return 0;
     }
     
     global_palette = fig_animation_get_palette(animation);
     if(global_palette != NULL
     && fig_palette_count_colors(global_palette) != 0) {
-        global_color_depth = get_color_depth(global_palette);
+        global_color_depth = fig_gif_get_color_depth_(global_palette);
 
-        if(global_color_depth > GIF_SCREEN_DESC_PALETTE_DEPTH_MASK + 1) {
+        if(global_color_depth > FIG_GIF_SCREEN_DESC_PALETTE_DEPTH_MASK + 1) {
             fig_state_set_error(state, "too many colors in global animation palette");
             return 0;
         }
 
-        screen_desc_packed_fields = ((global_color_depth - 1) & GIF_SCREEN_DESC_PALETTE_DEPTH_MASK) | GIF_SCREEN_DESC_GLOBAL_COLOR;
+        screen_desc_packed_fields = ((global_color_depth - 1) & FIG_GIF_SCREEN_DESC_PALETTE_DEPTH_MASK) | FIG_GIF_SCREEN_DESC_GLOBAL_COLOR;
     } else {
         global_color_depth = 0;
         screen_desc_packed_fields = 0;
@@ -823,12 +822,12 @@ fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *ani
     || !fig_output_write_u8(output, screen_desc_packed_fields)
     || !fig_output_write_u8(output, 0)
     || !fig_output_write_u8(output, 0)) {
-        error_write_failed(state);
+        fig_gif_error_write_failed_(state);
         return 0;
     }
     
-    if((screen_desc_packed_fields & GIF_SCREEN_DESC_GLOBAL_COLOR) != 0
-    && !write_palette(state, output, global_palette, global_color_depth)) {
+    if((screen_desc_packed_fields & FIG_GIF_SCREEN_DESC_GLOBAL_COLOR) != 0
+    && !fig_gif_write_palette_(state, output, global_palette, global_color_depth)) {
         return 0;
     }
 
@@ -836,15 +835,15 @@ fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *ani
     images = fig_animation_get_images(animation);    
 
     if(image_count > 1) {
-        if(!fig_output_write_u8(output, GIF_BLOCK_EXTENSION)
-        || !fig_output_write_u8(output, GIF_EXT_APPLICATION)
-        || !fig_output_write_u8(output, GIF_APPLICATION_SIGNATURE_LENGTH)
-        || fig_output_write(output, GIF_APPLICATION_SIGNATURE_NETSCAPE, GIF_APPLICATION_SIGNATURE_LENGTH, 1) != 1
+        if(!fig_output_write_u8(output, FIG_GIF_BLOCK_EXTENSION)
+        || !fig_output_write_u8(output, FIG_GIF_EXT_APPLICATION)
+        || !fig_output_write_u8(output, FIG_GIF_APPLICATION_SIGNATURE_LENGTH)
+        || fig_output_write(output, FIG_GIF_APPLICATION_SIGNATURE_NETSCAPE, FIG_GIF_APPLICATION_SIGNATURE_LENGTH, 1) != 1
         || !fig_output_write_u8(output, 3)
         || !fig_output_write_u8(output, 1)
         || !fig_output_write_le_u16(output, fig_animation_get_loop_count(animation) <= 0xFFFF ? (fig_uint16_t) fig_animation_get_loop_count(animation) : 0)
         || !fig_output_write_u8(output, 0)) {
-            error_write_failed(state);
+            fig_gif_error_write_failed_(state);
             return 0;
         }
     }
@@ -864,16 +863,16 @@ fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *ani
                 return 0;
             }
 
-            if(!fig_output_write_u8(output, GIF_BLOCK_EXTENSION)
-            || !fig_output_write_u8(output, GIF_EXT_GRAPHICS_CONTROL)
+            if(!fig_output_write_u8(output, FIG_GIF_BLOCK_EXTENSION)
+            || !fig_output_write_u8(output, FIG_GIF_EXT_GRAPHICS_CONTROL)
             || !fig_output_write_u8(output, 4)
             || !fig_output_write_u8(output,
-                (fig_image_get_transparent(image) ? GIF_GRAPHICS_CTRL_TRANSPARENCY : 0)
-                | (convert_fig_disposal_to_gif_disposal(fig_image_get_disposal(image)) << GIF_GRAPHICS_CTRL_DISPOSAL_SHIFT))
+                (fig_image_get_transparent(image) ? FIG_GIF_GRAPHICS_CTRL_TRANSPARENCY : 0)
+                | (fig_convert_fig_disposal_to_gif_disposal_(fig_image_get_disposal(image)) << FIG_GIF_GRAPHICS_CTRL_DISPOSAL_SHIFT))
             || !fig_output_write_le_u16(output, delay <= 0xFFFF ? (fig_uint16_t) delay : 0)
             || !fig_output_write_u8(output, fig_image_get_transparent(image) ? (fig_uint8_t) fig_image_get_transparency_index(image) : 0)
             || !fig_output_write_u8(output, 0)) {
-                error_write_failed(state);
+                fig_gif_error_write_failed_(state);
                 return 0;
             }
         }
@@ -881,14 +880,14 @@ fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *ani
         local_palette = fig_image_get_palette(image);
         if(local_palette != NULL
         && fig_palette_count_colors(local_palette) != 0) {
-            local_color_depth = get_color_depth(local_palette);
+            local_color_depth = fig_gif_get_color_depth_(local_palette);
 
-            if(local_color_depth > GIF_IMAGE_DESC_PALETTE_DEPTH_MASK + 1) {
+            if(local_color_depth > FIG_GIF_IMAGE_DESC_PALETTE_DEPTH_MASK + 1) {
                 fig_state_set_error(state, "too many colors in local frame palette");
                 return 0;
             }
 
-            image_desc_packed_fields = ((local_color_depth - 1) & GIF_IMAGE_DESC_PALETTE_DEPTH_MASK) | GIF_IMAGE_DESC_LOCAL_COLOR;
+            image_desc_packed_fields = ((local_color_depth - 1) & FIG_GIF_IMAGE_DESC_PALETTE_DEPTH_MASK) | FIG_GIF_IMAGE_DESC_LOCAL_COLOR;
         } else {
             local_color_depth = 0;
             image_desc_packed_fields = 0;
@@ -904,30 +903,30 @@ fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *ani
             fig_state_set_error(state, "frame dimensions are too large.");
         }
 
-        if(!fig_output_write_u8(output, GIF_BLOCK_IMAGE)
+        if(!fig_output_write_u8(output, FIG_GIF_BLOCK_IMAGE)
         || !fig_output_write_le_u16(output, (fig_uint16_t) fig_image_get_origin_x(image))
         || !fig_output_write_le_u16(output, (fig_uint16_t) fig_image_get_origin_y(image))
         || !fig_output_write_le_u16(output, (fig_uint16_t) fig_image_get_indexed_width(image))
         || !fig_output_write_le_u16(output, (fig_uint16_t) fig_image_get_indexed_height(image))
         || !fig_output_write_u8(output, image_desc_packed_fields)) {
-            error_write_failed(state);
+            fig_gif_error_write_failed_(state);
             return 0;
         }
 
-        if((image_desc_packed_fields & GIF_IMAGE_DESC_LOCAL_COLOR) != 0
-        && !write_palette(state, output, local_palette, local_color_depth)) {
+        if((image_desc_packed_fields & FIG_GIF_IMAGE_DESC_LOCAL_COLOR) != 0
+        && !fig_gif_write_palette_(state, output, local_palette, local_color_depth)) {
             return 0;
         }
-        if((image_desc_packed_fields & GIF_IMAGE_DESC_LOCAL_COLOR) == 0
-        && (screen_desc_packed_fields & GIF_SCREEN_DESC_GLOBAL_COLOR) == 0) {
+        if((image_desc_packed_fields & FIG_GIF_IMAGE_DESC_LOCAL_COLOR) == 0
+        && (screen_desc_packed_fields & FIG_GIF_SCREEN_DESC_GLOBAL_COLOR) == 0) {
             fig_state_set_error(state, "image has no valid palette (local or global)");
             return 0;
         }
 
-        write_image_data(state, output, image, (image_desc_packed_fields & GIF_IMAGE_DESC_LOCAL_COLOR) != 0 ? local_palette : global_palette);
+        fig_gif_write_image_data_(state, output, image, (image_desc_packed_fields & FIG_GIF_IMAGE_DESC_LOCAL_COLOR) != 0 ? local_palette : global_palette);
     }
 
-    fig_output_write_u8(output, GIF_BLOCK_TERMINATOR);
+    fig_output_write_u8(output, FIG_GIF_BLOCK_TERMINATOR);
 
     return 1;
 }

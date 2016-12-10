@@ -7,7 +7,7 @@ struct fig_state {
     void *ud;
 };
 
-static void *default_alloc(void *ud, void *ptr, size_t old_size, size_t new_size) {
+static void *fig_default_alloc_(void *ud, void *ptr, size_t old_size, size_t new_size) {
     (void) ud;
 
     if((ptr != NULL && old_size == 0)
@@ -24,7 +24,7 @@ static void *default_alloc(void *ud, void *ptr, size_t old_size, size_t new_size
 }
 
 fig_state *fig_create_state(void) {
-    return fig_create_custom_state(default_alloc, NULL);
+    return fig_create_custom_state(fig_default_alloc_, NULL);
 }
 
 fig_state *fig_create_custom_state(fig_allocator_t alloc, void *ud) {

@@ -138,7 +138,7 @@ void fig_animation_remove_image(fig_animation *self, size_t index) {
     --self->image_count;
 }
 
-static void clear_image(fig_animation *self, fig_image *image) {
+static void fig_clear_image_(fig_animation *self, fig_image *image) {
     size_t i;
     size_t size;
     fig_uint32_t color;
@@ -152,7 +152,7 @@ static void clear_image(fig_animation *self, fig_image *image) {
     }
 }
 
-static void dispose_indexed(fig_animation *self, fig_image *prev, fig_image *cur, fig_image *next) {
+static void fig_dispose_indexed_(fig_animation *self, fig_image *prev, fig_image *cur, fig_image *next) {
     size_t cur_x, cur_y, cur_w, cur_h;
     fig_bool_t cur_transparent;
     size_t cur_transparency_index;
@@ -206,7 +206,7 @@ static void dispose_indexed(fig_animation *self, fig_image *prev, fig_image *cur
     }
 }
 
-static void blit_indexed(fig_animation *self, fig_image *image) {
+static void fig_blit_indexed_(fig_animation *self, fig_image *image) {
     fig_palette *palette;
     size_t x, y, w, h;
     fig_bool_t transparent;
@@ -267,13 +267,13 @@ fig_bool_t fig_animation_render_images(fig_animation *self) {
         }
 
         if(cur == NULL) {
-            clear_image(self, next);
+            fig_clear_image_(self, next);
         } else {
             memcpy(fig_image_get_render_data(next), fig_image_get_render_data(cur), sizeof(fig_uint32_t) * self->width * self->height);
-            dispose_indexed(self, prev, cur, next);
+            fig_dispose_indexed_(self, prev, cur, next);
         }
 
-        blit_indexed(self, next);
+        fig_blit_indexed_(self, next);
 
         if(cur != NULL) {
             disposal = fig_image_get_disposal(cur);
