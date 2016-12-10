@@ -703,7 +703,6 @@ fig_bool_t fig_animation_render_images(fig_animation *self) {
     return 1;
 }
 
-
 fig_palette *fig_animation_get_render_palette(fig_animation *self, fig_image *image) {
     fig_palette *local_palette = fig_image_get_palette(image);
     if(fig_palette_count_colors(local_palette) > 0) {
@@ -950,11 +949,11 @@ static void fig_gif_error_lzw_invalid_code_(fig_state *state) {
 
 static fig_bool_t fig_gif_read_image_data_(fig_state *state, fig_input *input, fig_gif_image_descriptor_ *image_desc, fig_uint8_t *index_data) {
     fig_uint8_t min_code_size;
-    fig_uint16_t clear;
-    fig_uint16_t eoi;
+    fig_uint16_t clear_code;
+    fig_uint16_t eoi_code;
     fig_uint8_t code_size;
     fig_uint16_t code_mask;
-    fig_uint16_t avail;
+    fig_uint16_t code_count;
     fig_uint16_t old_code;
     fig_uint16_t prefix_codes[FIG_GIF_LZW_MAX_CODES];
     fig_uint8_t suffix_chars[FIG_GIF_LZW_MAX_CODES];
@@ -978,17 +977,17 @@ static fig_bool_t fig_gif_read_image_data_(fig_state *state, fig_input *input, f
         return 0;
     }
     
-    clear = 1 << min_code_size;
-    eoi = clear + 1;
+    clear_code = 1 << min_code_size;
+    eoi_code = clear_code + 1;
     code_size = min_code_size + 1;
     code_mask = (1 << code_size) - 1;
-    avail = eoi + 1;
+    code_count = eoi_code + 1;
     old_code = FIG_GIF_LZW_NULL_CODE;
     
     {
         fig_uint16_t i;
 
-        for(i = 0; i < clear; ++i) {
+        for(i = 0; i < clear_code; ++i) {
             prefix_codes[i] = FIG_GIF_LZW_NULL_CODE;
             suffix_chars[i] = i & 0xFF;
         }
@@ -1031,16 +1030,16 @@ static fig_bool_t fig_gif_read_image_data_(fig_state *state, fig_input *input, f
             accumulator >>= code_size;
             accumulator_length -= code_size;
 
-            if(code == clear) {
+            if(code == clear_code) {
                 code_size = min_code_size + 1;
                 code_mask = (1 << code_size) - 1;
-                avail = eoi + 1;
+                code_count = eoi_code + 1;
                 old_code = FIG_GIF_LZW_NULL_CODE;
-            } else if(code == eoi) {
+            } else if(code == eoi_code) {
                 fig_input_seek(input, sub_block_length, FIG_SEEK_CUR);
                 return fig_gif_skip_sub_blocks_(input);
             } else if(old_code == FIG_GIF_LZW_NULL_CODE) {
-                if(code >= avail) {
+                if(code >= code_count) {
                     fig_gif_error_lzw_invalid_code_(state);
                     return 0;
                 }
@@ -1052,10 +1051,10 @@ static fig_bool_t fig_gif_read_image_data_(fig_state *state, fig_input *input, f
                 char_stack[char_stack_size++] = suffix_chars[code];
                 first_char = code & 0xFF;
                 old_code = code;
-            } else if(code <= avail) {
+            } else if(code <= code_count) {
                 fig_uint16_t current_code = code;
 
-                if(current_code == avail) {
+                if(current_code == code_count) {
                     if(char_stack_size >= FIG_GIF_LZW_MAX_STACK_SIZE) {
                         fig_gif_error_lzw_stack_overflow_(state);
                         return 0;
@@ -1063,7 +1062,7 @@ static fig_bool_t fig_gif_read_image_data_(fig_state *state, fig_input *input, f
                     char_stack[char_stack_size++] = first_char;
                     current_code = old_code;
                 }
-                while(current_code >= clear) {
+                while(current_code >= clear_code) {
                     if(current_code >= FIG_GIF_LZW_MAX_CODES) {
                         fig_gif_error_lzw_invalid_code_(state);
                         return 0;
@@ -1084,11 +1083,11 @@ static fig_bool_t fig_gif_read_image_data_(fig_state *state, fig_input *input, f
                 }
                 char_stack[char_stack_size++] = first_char;
 
-                if(avail < FIG_GIF_LZW_MAX_CODES) {
-                    prefix_codes[avail] = old_code;
-                    suffix_chars[avail] = first_char;
-                    ++avail;
-                    if((avail & code_mask) == 0 && avail < FIG_GIF_LZW_MAX_CODES) {
+                if(code_count < FIG_GIF_LZW_MAX_CODES) {
+                    prefix_codes[code_count] = old_code;
+                    suffix_chars[code_count] = first_char;
+                    ++code_count;
+                    if((code_count & code_mask) == 0 && code_count < FIG_GIF_LZW_MAX_CODES) {
                         ++code_size;
                         code_mask = (1 << code_size) - 1;
                     }
@@ -1363,11 +1362,11 @@ static fig_bool_t fig_gif_block_write_bits_(fig_state *state, fig_output *output
 
 static fig_bool_t fig_gif_write_image_data_(fig_state *state, fig_output *output, fig_image *image, fig_palette *palette) {
     fig_uint8_t min_code_size;
-    fig_uint16_t clear;
-    fig_uint16_t eoi;
+    fig_uint16_t clear_code;
+    fig_uint16_t eoi_code;
     fig_uint8_t code_size;
     fig_uint16_t code_mask;
-    fig_uint16_t avail;
+    fig_uint16_t code_count;
     fig_uint16_t old_code;
     fig_uint16_t prefix_codes[FIG_GIF_LZW_MAX_CODES];
     fig_uint8_t suffix_chars[FIG_GIF_LZW_MAX_CODES];
@@ -1388,11 +1387,11 @@ static fig_bool_t fig_gif_write_image_data_(fig_state *state, fig_output *output
         min_code_size = 2;
     }
 
-    clear = 1 << min_code_size;
-    eoi = clear + 1;
+    clear_code = 1 << min_code_size;
+    eoi_code = clear_code + 1;
     code_size = min_code_size + 1;
     code_mask = (1 << code_size) - 1;
-    avail = eoi + 1;
+    code_count = eoi_code + 1;
     old_code = FIG_GIF_LZW_NULL_CODE;
     accumulator = 0;
     accumulator_length = 0;
@@ -1401,7 +1400,7 @@ static fig_bool_t fig_gif_write_image_data_(fig_state *state, fig_output *output
     {
         fig_uint16_t i;
 
-        for(i = 0; i < clear; ++i) {
+        for(i = 0; i < clear_code; ++i) {
             prefix_codes[i] = FIG_GIF_LZW_NULL_CODE;
             suffix_chars[i] = i & 0xFF;
         }
@@ -1411,7 +1410,7 @@ static fig_bool_t fig_gif_write_image_data_(fig_state *state, fig_output *output
         fig_gif_error_write_failed_(state);
         return 0;
     }
-    if(!fig_gif_block_write_bits_(state, output, block, &accumulator, &accumulator_length, clear, code_size)) {
+    if(!fig_gif_block_write_bits_(state, output, block, &accumulator, &accumulator_length, clear_code, code_size)) {
         return 0;
     }
 
@@ -1430,7 +1429,7 @@ static fig_bool_t fig_gif_write_image_data_(fig_state *state, fig_output *output
         } else {
             fig_uint16_t i;
             fig_bool_t found = 0;
-            for(i = eoi + 1; i != avail; ++i) {
+            for(i = eoi_code + 1; i != code_count; ++i) {
                 if(prefix_codes[i] == old_code && suffix_chars[i] == pixel) {
                     found = 1;
                     break;
@@ -1444,23 +1443,23 @@ static fig_bool_t fig_gif_write_image_data_(fig_state *state, fig_output *output
                     return 0;
                 }
 
-                if(avail >= FIG_GIF_LZW_MAX_CODES) {
-                    if(!fig_gif_block_write_bits_(state, output, block, &accumulator, &accumulator_length, clear, code_size)) {
+                if(code_count >= FIG_GIF_LZW_MAX_CODES) {
+                    if(!fig_gif_block_write_bits_(state, output, block, &accumulator, &accumulator_length, clear_code, code_size)) {
                         return 0;
                     }
 
                     code_size = min_code_size + 1;
                     code_mask = (1 << code_size) - 1;
-                    avail = eoi + 1;
+                    code_count = eoi_code + 1;
                 } else {
-                    if((avail & code_mask) == 0) {
+                    if((code_count & code_mask) == 0) {
                         ++code_size;
                         code_mask = (1 << code_size) - 1;
                     }
 
-                    prefix_codes[avail] = old_code;
-                    suffix_chars[avail] = pixel;
-                    ++avail;
+                    prefix_codes[code_count] = old_code;
+                    suffix_chars[code_count] = pixel;
+                    ++code_count;
                 }
 
                 old_code = pixel;
@@ -1469,7 +1468,7 @@ static fig_bool_t fig_gif_write_image_data_(fig_state *state, fig_output *output
     }
 
     if(!fig_gif_block_write_bits_(state, output, block, &accumulator, &accumulator_length, old_code, code_size)
-    || !fig_gif_block_write_bits_(state, output, block, &accumulator, &accumulator_length, eoi, code_size)) {
+    || !fig_gif_block_write_bits_(state, output, block, &accumulator, &accumulator_length, eoi_code, code_size)) {
         return 0;
     }
 
