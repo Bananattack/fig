@@ -428,11 +428,11 @@ fig_animation *fig_load_gif(fig_state *state, fig_input *input) {
     }
 
     animation = fig_create_animation(state);
-    if(animation == NULL
-    || !fig_animation_resize_canvas(animation, screen_desc.width, screen_desc.height)) {
-        fig_state_set_error(state, "failed to allocate animation canvas");
-        return fig_animation_free(animation), NULL;
+    if(animation == NULL) {
+        return NULL;
     }
+    fig_animation_set_dimensions(animation, screen_desc.width, screen_desc.height);
+
     if(screen_desc.global_colors > 0
     && !read_palette(input, screen_desc.global_colors, fig_animation_get_palette(animation))) {
         fig_state_set_error(state, "failed to read global palette");
@@ -506,8 +506,8 @@ fig_animation *fig_load_gif(fig_state *state, fig_input *input) {
 
                 if(image == NULL
                 || !fig_image_resize_indexed(image, image_desc.width, image_desc.height)
-                || !fig_image_resize_canvas(image, screen_desc.width, screen_desc.height)) {
-                    fig_state_set_error(state, "failed to allocate frame image canvas");
+                || !fig_image_resize_render(image, screen_desc.width, screen_desc.height)) {
+                    fig_state_set_error(state, "failed to allocate frame image surfaces");
                     return fig_animation_free(animation), NULL;
                 }
                 if(image_desc.local_colors > 0
@@ -530,7 +530,7 @@ fig_animation *fig_load_gif(fig_state *state, fig_input *input) {
                 break;
             }
             case GIF_BLOCK_TERMINATOR: {
-                fig_animation_render_indexed(animation);
+                fig_animation_render_images(animation);
                 return animation;
             }
             default:
@@ -858,7 +858,7 @@ fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *ani
 
         if(image_count > 1) {
             if(fig_image_get_transparent(image)
-            && (fig_image_get_transparency_index(image) >= fig_palette_count_colors(fig_image_get_render_palette(image, animation))
+            && (fig_image_get_transparency_index(image) >= fig_palette_count_colors(fig_animation_get_render_palette(animation, image))
                 || fig_image_get_transparency_index(image) >= 0xFF)) {
                 fig_state_set_error(state, "transparency index is outside of valid palette range");
                 return 0;

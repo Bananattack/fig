@@ -46,6 +46,7 @@ const fig_uint8_t STARTING_COLOR_INDEXES[] = {
 
 
 int main(int argc, char **argv) {
+    char *dest_filename;
     FILE *dest_file;
     fig_state *state;
     fig_output *output;
@@ -55,10 +56,7 @@ int main(int argc, char **argv) {
     size_t frame_index;
     fig_image *prev_image = NULL;
 
-    if(argc < 2) {
-        fputs("Usage: fig_waterfall output_filename\n", stderr);
-        return 1;
-    }
+    dest_filename = argc >= 2 ? argv[1] : "out.gif";        
 
     state = fig_create_state();
     animation = fig_create_animation(state);
@@ -67,7 +65,7 @@ int main(int argc, char **argv) {
     for(i = 0; i != 16; ++i) {
         fig_palette_set(palette, i, PICO8_PALETTE[i]);
     }
-    fig_animation_resize_canvas(animation, 128, 128);
+    fig_animation_set_dimensions(animation, 128, 128);
 
     for(frame_index = 0; frame_index != 128; ++frame_index) {
         fig_uint8_t *indexed_data;
@@ -120,10 +118,10 @@ int main(int argc, char **argv) {
         prev_image = image;
     }
 
-    dest_file = fopen(argv[1], "wb");
+    dest_file = fopen(dest_filename, "wb");
     if(dest_file == NULL) {
         fputs("failed to open output file '", stderr);
-        fputs(argv[1], stderr);
+        fputs(dest_filename, stderr);
         fputs("' \n", stderr);
         return 1;
     }

@@ -158,44 +158,53 @@ fig_uint32_t *fig_palette_get_colors(fig_palette *self);
 fig_uint32_t fig_palette_get(fig_palette *self, size_t index);
 /* Set a BGRA color in the palette at the given index. 0 <= index < size. */
 void fig_palette_set(fig_palette *self, size_t index, fig_uint32_t color);
-/* Resize the palette to some capacity. Return 1 if successful, 0 otherwise. */
+/* Resize the palette to the specified size.
+ * Invalidates the color data pointer on success. 
+ * If the palette size increases, the additional color entries must be initialized.
+ * Returns whether the resize was successful. */
 fig_bool_t fig_palette_resize(fig_palette *self, size_t size);
 /* Free a palette created with fig_create_palette. */
 void fig_palette_free(fig_palette *self);
 
 
 
-/* An image containing BGRA color data and possibly paletted index data. */
+/* An image containing a palette-indexed surface, and a BGRA render surface. */
 struct fig_image;
 
 /* Create and return a new image. Returns NULL on failure. */
 fig_image *fig_create_image(fig_state *state);
 /* Get the palette associated with the image. */
 fig_palette *fig_image_get_palette(fig_image *self);
-/* Get the x position of the image index data relative to the canvas. */
+/* Get the x position of the image index data relative to the animation canvas. */
 size_t fig_image_get_origin_x(fig_image *self);
-/* Get the y position of the image index data relative to the canvas. */
+/* Get the y position of the image index data relative to the animation canvas. */
 size_t fig_image_get_origin_y(fig_image *self);
-/* Get the width of the image canvas. */
+/* Get the width of the image indexed data. */
 size_t fig_image_get_indexed_width(fig_image *self);
-/* Get the height of the image canvas. */
+/* Get the height of the image indexed data. */
 size_t fig_image_get_indexed_height(fig_image *self);
 /* Get a raw pointer to image index data. */
 fig_uint8_t *fig_image_get_indexed_data(fig_image *self);
-/* Set the x position of the image index data relative to the canvas. */
+/* Set the x position of the image index data relative to the animation canvas. */
 void fig_image_set_origin_x(fig_image *self, size_t value);
-/* Set the y position of the image index data relative to the canvas. */
+/* Set the y position of the image index data relative to the animation canvas. */
 void fig_image_set_origin_y(fig_image *self, size_t value);
-/* Resize the canvas area of the image */
+/* Resize the indexed surface of the image.
+ * Invalidates the indexed data pointer on success.
+ * The data must be reinitialized after resizing.
+ * Returns whether the resize was successful. */
 fig_bool_t fig_image_resize_indexed(fig_image *self, size_t width, size_t height);
-/* Get the width of the image canvas. */
-size_t fig_image_get_canvas_width(fig_image *self);
-/* Get the height of the image canvas. */
-size_t fig_image_get_canvas_height(fig_image *self);
+/* Get the width of the image render data. */
+size_t fig_image_get_render_width(fig_image *self);
+/* Get the height of the image render data. */
+size_t fig_image_get_render_height(fig_image *self);
 /* Get a raw pointer to image BGRA color data. */
-fig_uint32_t *fig_image_get_canvas_data(fig_image *self);
-/* Resize the canvas area of the image */
-fig_bool_t fig_image_resize_canvas(fig_image *self, size_t width, size_t height);
+fig_uint32_t *fig_image_get_render_data(fig_image *self);
+/* Resize the render surface of the image.
+ * Invalidates the render data pointer on success.
+ * The data must be reinitialized after resizing.
+ * Returns whether the resize was successful. */
+fig_bool_t fig_image_resize_render(fig_image *self, size_t width, size_t height);
 /* Get the delay to apply on this image. */
 size_t fig_image_get_delay(fig_image *self);
 /* Get the disposal to apply between this image and the next. */
@@ -212,8 +221,6 @@ void fig_image_set_disposal(fig_image *self, fig_disposal_t value);
 void fig_image_set_transparent(fig_image *self, fig_bool_t value);
 /* Set the color that should be transparent during rendering. */
 void fig_image_set_transparency_index(fig_image *self, size_t value);
-/* Get the palette to apply for rendering. */
-fig_palette *fig_image_get_render_palette(fig_image *self, fig_animation *anim);
 /* Free an image created with fig_create_image. */
 void fig_image_free(fig_image *self);
 
@@ -226,12 +233,12 @@ struct fig_animation;
 fig_animation *fig_create_animation(fig_state *state);
 /* Get the palette associated with the animation. */
 fig_palette *fig_animation_get_palette(fig_animation *self);
-/* Get the width of the animation. */
+/* Get the width of the animation canvas. */
 size_t fig_animation_get_width(fig_animation *self);
-/* Get the height of the animation. */
+/* Get the height of the animation canvas. */
 size_t fig_animation_get_height(fig_animation *self);
-/* Resize the canvas area of the animation. */
-fig_bool_t fig_animation_resize_canvas(fig_animation *self, size_t width, size_t height);
+/* Set the canvas area of the animation. */
+void fig_animation_set_dimensions(fig_animation *self, size_t width, size_t height);
 /* Get the image count of the animation. */
 size_t fig_animation_count_images(fig_animation *self);
 /* Get a raw pointer to a contiguous image array, possibly NULL. */
@@ -242,14 +249,27 @@ size_t fig_animation_get_loop_count(fig_animation *self);
 void fig_animation_set_loop_count(fig_animation *self, size_t value);
 /* Exchange order of two images at the given indices. 0 <= index < size */
 void fig_animation_swap_images(fig_animation *self, size_t index_a, size_t index_b);
-/* Append a new image to the animation, and return it. NULL on failure. */
+/* Create and add an image to the end of the animation, and return it.
+ * The image is owned by the animation.
+ * The image will be freed when the animations this image,
+ * or as cleanup if the animation itself is freed.
+ * Returns NULL on failure. */
 fig_image *fig_animation_add_image(fig_animation *self);
-/* Insert a new image, and return it. NULL on failure. 0 <= index <= size */
+/* Create and insert a new image at the given index, and return it.
+ * The image is owned by the animation.
+ * The image will be freed when the animations this image,
+ * or as cleanup if the animation itself is freed.
+ * Returns NULL on failure. 0 <= index <= size */
 fig_image *fig_animation_insert_image(fig_animation *self, size_t index);
-/* Remove an image from the animation and free it. */
+/* Remove an image from the animation and free it immediately. */
 void fig_animation_remove_image(fig_animation *self, size_t index);
-/* Render all the images offline to get their complete appearance. */
-void fig_animation_render_indexed(fig_animation *self);
+/* Render all the images by using their indexed data and palette to
+ * generate their complete appearance. If this was succesful,
+ * every image will contain a full color render surface of the result.
+ * Returns whether the render was succesful. */
+fig_bool_t fig_animation_render_images(fig_animation *self);
+/* Get the palette to apply for rendering the specified image in the animation. */
+fig_palette *fig_animation_get_render_palette(fig_animation *self, fig_image *image);
 /* Free an animation created with fig_create_animation. */
 void fig_animation_free(fig_animation *self);
 
@@ -265,7 +285,7 @@ struct fig_input_callbacks {
     size_t (*read)(void *ud, void *dest, size_t size, size_t count);
 
     /* Attempt to seek to a position within the stream, and return whether
-       this was successful. */
+     * this was successful. */
     fig_bool_t (*seek)(void *ud, ptrdiff_t offset, fig_seek_origin_t whence);
 
     /* Tell the current position in the input. */
@@ -336,7 +356,7 @@ size_t fig_buffer_output_get_size(fig_output *self);
 /* Get a pointer to data in the buffer output. */
 const char *fig_buffer_output_get_data(fig_output *self);
 /* Write up to count elements of given size from src into the output.
-   Returns the number of elements actually written. */
+ * Returns the number of elements actually written. */
 size_t fig_output_write(fig_output *self, const void *src, size_t size, size_t count);
 /* Write a uint8_t, and return whether it was successful. */
 fig_bool_t fig_output_write_u8(fig_output *self, fig_uint8_t value);
@@ -348,13 +368,24 @@ fig_bool_t fig_output_write_le_u32(fig_output *self, fig_uint32_t value);
 void fig_output_free(fig_output *self);
 
 
+
+/* GIF format support */
 #ifdef FIG_LOAD_GIF
 fig_animation *fig_load_gif(fig_state *state, fig_input *input);
 #endif
-
 #ifdef FIG_SAVE_GIF
 fig_bool_t fig_save_gif(fig_state *state, fig_output *output, fig_animation *animation);
 #endif
+
+
+
+/* Utility functions */
+/* Returns a 32-bit BRGA color formed by combining the r, g, b, a components */
+fig_uint32_t fig_pack_color(fig_uint8_t r, fig_uint8_t g, fig_uint8_t b, fig_uint8_t a);
+/* Extracts the r, g, b, a components of the given 32-bit BGRA color. */
+void fig_unpack_color(fig_uint32_t color, fig_uint8_t *r, fig_uint8_t *g, fig_uint8_t *b, fig_uint8_t *a);
+
+
 
 #ifdef __cplusplus
 }

@@ -12,6 +12,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fig_gif2ppm", "tests\fig_gi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fig_gif2gif", "tests\fig_gif2gif.vcxproj", "{DE549E1D-F966-4E45-A36B-3880DD685CA6}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fig_fireball", "tests\fig_fireball.vcxproj", "{E0EA4293-161E-46BF-A81C-3D8DB7AA7B16}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -30,6 +32,10 @@ Global
 		{DE549E1D-F966-4E45-A36B-3880DD685CA6}.Debug|Win32.Build.0 = Debug|Win32
 		{DE549E1D-F966-4E45-A36B-3880DD685CA6}.Release|Win32.ActiveCfg = Release|Win32
 		{DE549E1D-F966-4E45-A36B-3880DD685CA6}.Release|Win32.Build.0 = Release|Win32
+		{E0EA4293-161E-46BF-A81C-3D8DB7AA7B16}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E0EA4293-161E-46BF-A81C-3D8DB7AA7B16}.Debug|Win32.Build.0 = Debug|Win32
+		{E0EA4293-161E-46BF-A81C-3D8DB7AA7B16}.Release|Win32.ActiveCfg = Release|Win32
+		{E0EA4293-161E-46BF-A81C-3D8DB7AA7B16}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

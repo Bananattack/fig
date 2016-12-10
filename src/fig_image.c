@@ -6,15 +6,15 @@ struct fig_image {
     size_t indexed_y;
     size_t indexed_width;
     size_t indexed_height;
-    size_t canvas_width;
-    size_t canvas_height;
+    size_t render_width;
+    size_t render_height;
     size_t delay;
     fig_disposal_t disposal;
     fig_palette *palette;
     fig_bool_t transparent;
     size_t transparency_index;
     fig_uint8_t *indexed_data;
-    fig_uint32_t *canvas_data;
+    fig_uint32_t *render_data;
 };
 
 fig_image *fig_create_image(fig_state *state) {
@@ -26,8 +26,8 @@ fig_image *fig_create_image(fig_state *state) {
             self->indexed_y = 0;
             self->indexed_width = 0;
             self->indexed_height = 0;
-            self->canvas_width = 0;
-            self->canvas_height = 0;
+            self->render_width = 0;
+            self->render_height = 0;
             self->delay = 0;
             self->disposal = FIG_DISPOSAL_UNSPECIFIED;
             self->palette = fig_create_palette(state);
@@ -37,7 +37,7 @@ fig_image *fig_create_image(fig_state *state) {
             self->transparent = 0;
             self->transparency_index = 0;
             self->indexed_data = NULL;
-            self->canvas_data = NULL;
+            self->render_data = NULL;
         } else {
             fig_state_set_error_allocation_failed(state);
         }
@@ -92,6 +92,7 @@ fig_bool_t fig_image_resize_indexed(fig_image *self, size_t width, size_t height
         index_data = (fig_uint8_t *) fig_state_get_allocator(self->state)(fig_state_get_userdata(self->state),
             self->indexed_data, old_size, new_size);
         if(index_data == NULL) {
+            fig_state_set_error_allocation_failed(self->state);
             return 0;
         } else {
             self->indexed_width = width;
@@ -102,37 +103,38 @@ fig_bool_t fig_image_resize_indexed(fig_image *self, size_t width, size_t height
     }
 }
 
-size_t fig_image_get_canvas_width(fig_image *self) {
-    return self->canvas_width;
+size_t fig_image_get_render_width(fig_image *self) {
+    return self->render_width;
 }
 
-size_t fig_image_get_canvas_height(fig_image *self) {
-    return self->canvas_height;
+size_t fig_image_get_render_height(fig_image *self) {
+    return self->render_height;
 }
 
-fig_uint32_t *fig_image_get_canvas_data(fig_image *self) {
-    return self->canvas_data;
+fig_uint32_t *fig_image_get_render_data(fig_image *self) {
+    return self->render_data;
 }
 
-fig_bool_t fig_image_resize_canvas(fig_image *self, size_t width, size_t height) {
-    size_t old_size = self->canvas_width * self->canvas_height;
+fig_bool_t fig_image_resize_render(fig_image *self, size_t width, size_t height) {
+    size_t old_size = self->render_width * self->render_height;
     size_t new_size = width * height;
     if(new_size == 0) {
-        fig_state_get_allocator(self->state)(fig_state_get_userdata(self->state), self->canvas_data, sizeof(fig_uint32_t) * old_size, 0);
-        self->canvas_data = NULL;
-        self->canvas_width = 0;
-        self->canvas_height = 0;
+        fig_state_get_allocator(self->state)(fig_state_get_userdata(self->state), self->render_data, sizeof(fig_uint32_t) * old_size, 0);
+        self->render_data = NULL;
+        self->render_width = 0;
+        self->render_height = 0;
         return 1;
     } else {
-        fig_uint32_t *canvas_data;
-        canvas_data = (fig_uint32_t *) fig_state_get_allocator(self->state)(fig_state_get_userdata(self->state),
-            self->canvas_data, sizeof(fig_uint32_t) * old_size, sizeof(fig_uint32_t) * new_size);
-        if(canvas_data == NULL) {
+        fig_uint32_t *render_data;
+        render_data = (fig_uint32_t *) fig_state_get_allocator(self->state)(fig_state_get_userdata(self->state),
+            self->render_data, sizeof(fig_uint32_t) * old_size, sizeof(fig_uint32_t) * new_size);
+        if(render_data == NULL) {
+            fig_state_set_error_allocation_failed(self->state);
             return 0;
         } else {
-            self->canvas_width = width;
-            self->canvas_height = height;
-            self->canvas_data = canvas_data;
+            self->render_width = width;
+            self->render_height = height;
+            self->render_data = render_data;
             return 1;
         }
     }
@@ -170,14 +172,6 @@ void fig_image_set_transparency_index(fig_image *self, size_t value) {
     self->transparency_index = value;
 }
 
-fig_palette *fig_image_get_render_palette(fig_image *self, fig_animation *animation) {
-    if(fig_palette_count_colors(self->palette) > 0) {
-        return self->palette;
-    } else {
-        return fig_animation_get_palette(animation);
-    }
-}
-
 void fig_image_free(fig_image *self) {
     if(self != NULL) {
         fig_allocator_t alloc = fig_state_get_allocator(self->state);
@@ -188,7 +182,7 @@ void fig_image_free(fig_image *self) {
         }
    
         alloc(ud, self->indexed_data, self->indexed_width * self->indexed_height, 0);
-        alloc(ud, self->canvas_data, sizeof(fig_uint32_t) * self->canvas_width * self->canvas_height, 0);
+        alloc(ud, self->render_data, sizeof(fig_uint32_t) * self->render_width * self->render_height, 0);
         alloc(ud, self, sizeof(fig_image), 0);
     }
 }

@@ -59,6 +59,7 @@ fig_bool_t fig_palette_resize(fig_palette *self, size_t size) {
             self->size = size;
             return 1;
         }
+        fig_state_set_error_allocation_failed(self->state);
         return 0;
     }
 }

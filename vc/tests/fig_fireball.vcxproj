@@ -11,33 +11,28 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\fig.h" />
-    <ClInclude Include="..\include\fig_config.h" />
+    <ClCompile Include="..\..\tests\fig_fireball.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\fig_animation.c" />
-    <ClCompile Include="..\src\fig_image.c" />
-    <ClCompile Include="..\src\fig_io.c" />
-    <ClCompile Include="..\src\fig_palette.c" />
-    <ClCompile Include="..\src\fig_gif.c" />
-    <ClCompile Include="..\src\fig_state.c" />
-    <ClCompile Include="..\src\fig_utility.c" />
+    <ProjectReference Include="..\fig.vcxproj">
+      <Project>{eb138de3-5f23-4cc7-abae-e5813495a0af}</Project>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{EB138DE3-5F23-4CC7-ABAE-E5813495A0AF}</ProjectGuid>
+    <ProjectGuid>{E0EA4293-161E-46BF-A81C-3D8DB7AA7B16}</ProjectGuid>
     <RootNamespace>fig</RootNamespace>
-    <ProjectName>fig</ProjectName>
+    <ProjectName>fig_fireball</ProjectName>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140_xp</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140_xp</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -69,10 +64,11 @@
       <TreatSpecificWarningsAsErrors>4242;4254;4255;4365;4388;4431</TreatSpecificWarningsAsErrors>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>../include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -87,7 +83,7 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

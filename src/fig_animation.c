@@ -48,10 +48,9 @@ size_t fig_animation_get_height(fig_animation *self) {
     return self->height;
 }
 
-fig_bool_t fig_animation_resize_canvas(fig_animation *self, size_t width, size_t height) {
+void fig_animation_set_dimensions(fig_animation *self, size_t width, size_t height) {
     self->width = width;
     self->height = height;
-    return 1;
 }
 
 size_t fig_animation_count_images(fig_animation *self) {
@@ -143,13 +142,13 @@ static void clear_image(fig_animation *self, fig_image *image) {
     size_t i;
     size_t size;
     fig_uint32_t color;
-    fig_uint32_t *canvas_data;
+    fig_uint32_t *render_data;
 
-    size = fig_image_get_canvas_width(image) * fig_image_get_canvas_height(image);
+    size = fig_image_get_render_width(image) * fig_image_get_render_height(image);
     color = 0;
-    canvas_data = fig_image_get_canvas_data(image);
+    render_data = fig_image_get_render_data(image);
     for(i = 0; i < size; ++i) {
-        canvas_data[i] = color;
+        render_data[i] = color;
     }
 }
 
@@ -158,7 +157,7 @@ static void dispose_indexed(fig_animation *self, fig_image *prev, fig_image *cur
     fig_bool_t cur_transparent;
     size_t cur_transparency_index;
     fig_uint8_t *cur_index_data;
-    fig_uint32_t *next_canvas_data;
+    fig_uint32_t *next_render_data;
     fig_disposal_t disposal;
 
     cur_x = fig_image_get_origin_x(cur);
@@ -168,7 +167,7 @@ static void dispose_indexed(fig_animation *self, fig_image *prev, fig_image *cur
     cur_transparent = fig_image_get_transparent(cur);
     cur_transparency_index = fig_image_get_transparency_index(cur);
     cur_index_data = fig_image_get_indexed_data(cur);
-    next_canvas_data = fig_image_get_canvas_data(next);
+    next_render_data = fig_image_get_render_data(next);
     disposal = fig_image_get_disposal(cur);
 
     switch(disposal) {
@@ -178,7 +177,7 @@ static void dispose_indexed(fig_animation *self, fig_image *prev, fig_image *cur
                 for(j = 0; j < cur_w; ++j) {
                     if(!cur_transparent || cur_index_data[i * cur_w + j] != cur_transparency_index) {
                         size_t k = (cur_y + i) * self->width + (cur_x + j);
-                        next_canvas_data[k] = 0;
+                        next_render_data[k] = 0;
                     }
                 }
             }
@@ -186,15 +185,15 @@ static void dispose_indexed(fig_animation *self, fig_image *prev, fig_image *cur
         }
         case FIG_DISPOSAL_PREVIOUS: {
             size_t i, j;
-            fig_uint32_t *prev_canvas_data;
+            fig_uint32_t *prev_render_data;
 
-            prev_canvas_data = prev != NULL ? fig_image_get_canvas_data(prev) : NULL;
+            prev_render_data = prev != NULL ? fig_image_get_render_data(prev) : NULL;
             
             for(i = 0; i < cur_h; ++i) {
                 for(j = 0; j < cur_w; ++j) {
                     if(!cur_transparent || cur_index_data[i * cur_w + j] != cur_transparency_index) {
                         size_t k = (cur_y + i) * self->width + (cur_x + j);
-                        next_canvas_data[k] = prev != NULL ? prev_canvas_data[k] : 0;
+                        next_render_data[k] = prev != NULL ? prev_render_data[k] : 0;
                     }
                 }
             }
@@ -213,10 +212,10 @@ static void blit_indexed(fig_animation *self, fig_image *image) {
     fig_bool_t transparent;
     size_t transparency_index;
     fig_uint8_t *index_data;
-    fig_uint32_t *canvas_data;
+    fig_uint32_t *render_data;
     size_t i, j;
 
-    palette = fig_image_get_render_palette(image, self);
+    palette = fig_animation_get_render_palette(self, image);
     x = fig_image_get_origin_x(image);
     y = fig_image_get_origin_y(image);
     w = fig_image_get_indexed_width(image);
@@ -224,7 +223,7 @@ static void blit_indexed(fig_animation *self, fig_image *image) {
     transparent = fig_image_get_transparent(image);
     transparency_index = fig_image_get_transparency_index(image);
     index_data = fig_image_get_indexed_data(image);
-    canvas_data = fig_image_get_canvas_data(image);
+    render_data = fig_image_get_render_data(image);
 
     for(i = 0; i < h; ++i) {
         for(j = 0; j < w; ++j) {
@@ -232,13 +231,13 @@ static void blit_indexed(fig_animation *self, fig_image *image) {
 
             if(!transparent || index != transparency_index) {
                 size_t k = (y + i) * self->width + (x + j);
-                canvas_data[k] = fig_palette_get(palette, index);
+                render_data[k] = fig_palette_get(palette, index);
             }
         }
     }
 }
 
-void fig_animation_render_indexed(fig_animation *self) {
+fig_bool_t fig_animation_render_images(fig_animation *self) {
     fig_image **images;
     size_t image_count;
     fig_image *prev;
@@ -253,12 +252,24 @@ void fig_animation_render_indexed(fig_animation *self) {
     cur = NULL;
     next = NULL;
 
+    if(self->width == 0 && self->height == 0) {
+        fig_state_set_error(self->state, "image is empty");
+        return 0;
+    }
+
     for(i = 0; i < image_count; ++i) {
         next = images[i];
+        if(fig_image_get_render_width(next) != self->width
+        || fig_image_get_render_height(next) != self->height) {
+            if(!fig_image_resize_render(next, self->width, self->height)) {
+                return 0;
+            }
+        }
+
         if(cur == NULL) {
             clear_image(self, next);
         } else {
-            memcpy(fig_image_get_canvas_data(next), fig_image_get_canvas_data(cur), sizeof(fig_uint32_t) * self->width * self->height);
+            memcpy(fig_image_get_render_data(next), fig_image_get_render_data(cur), sizeof(fig_uint32_t) * self->width * self->height);
             dispose_indexed(self, prev, cur, next);
         }
 
@@ -271,6 +282,17 @@ void fig_animation_render_indexed(fig_animation *self) {
             }
         }
         cur = next;
+    }
+    return 1;
+}
+
+
+fig_palette *fig_animation_get_render_palette(fig_animation *self, fig_image *image) {
+    fig_palette *local_palette = fig_image_get_palette(image);
+    if(fig_palette_count_colors(local_palette) > 0) {
+        return local_palette;
+    } else {
+        return self->palette;
     }
 }
 

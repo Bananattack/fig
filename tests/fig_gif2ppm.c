@@ -42,10 +42,10 @@ int main(int argc, char **argv) {
             fig_uint32_t *data;
 
             image = images[i];
-            width = fig_image_get_canvas_width(image);
-            height = fig_image_get_canvas_height(image);
+            width = fig_image_get_render_width(image);
+            height = fig_image_get_render_height(image);
             image_size = width * height;
-            data = fig_image_get_canvas_data(image);
+            data = fig_image_get_render_data(image);
 
             sprintf(buffer, "out.%03d.ppm", (int) i);
 
