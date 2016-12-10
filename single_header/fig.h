@@ -28,7 +28,6 @@ typedef TYPE_GOES_HERE fig_bool_t; */
 extern "C" {
 #endif
 
-#include <fig_config.h>
 
 #include <stdio.h>
 

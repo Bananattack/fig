@@ -51,7 +51,7 @@ def reorganize_includes(lines):
     return sorted(set(include_lines)) + normal_lines
 
 fig_config_h_lines = ensure_ending_newline(strip_include_guard('FIG_CONFIG_H', list(open('include/fig_config.h'))))
-fig_h_lines = ensure_ending_newline(strip_include_guard('FIG_H', list(open('include/fig.h'))))
+fig_h_lines = ensure_ending_newline(strip_header_include('<fig_config.h>', strip_include_guard('FIG_H', list(open('include/fig.h')))))
 fig_c_lines = []
 for filename in sorted(glob.glob('src/*.c')):
     fig_c_lines.extend(ensure_ending_newline(strip_header_include('<fig.h>', list(open(filename)))))
