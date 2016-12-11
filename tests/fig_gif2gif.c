@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
             fputs("error while reading: ", stderr);
             fputs(fig_state_get_error(state), stderr);
             fputs("\n", stderr);
-        }        
+        }
         return 1;
     }
 

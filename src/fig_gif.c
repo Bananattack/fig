@@ -226,7 +226,9 @@ static fig_bool_t fig_gif_read_image_data_(fig_state *state, fig_input *input, f
     fig_uint8_t suffix_chars[FIG_GIF_LZW_MAX_CODES];
     fig_uint8_t char_stack[FIG_GIF_LZW_MAX_STACK_SIZE];
     fig_uint16_t char_stack_size;
-    fig_uint8_t sub_block_length;
+    fig_uint8_t block_position;
+    fig_uint8_t block_size;
+    fig_uint8_t block[255];
     fig_uint32_t accumulator;
     fig_uint8_t accumulator_length;
     fig_uint8_t first_char;
@@ -262,7 +264,8 @@ static fig_bool_t fig_gif_read_image_data_(fig_state *state, fig_input *input, f
 
     memset(char_stack, 0, sizeof(char_stack));
     char_stack_size = 0;
-    sub_block_length = 0;
+    block_position = 0;
+    block_size = 0;
     accumulator = 0;
     accumulator_length = 0;
     first_char = 0;
@@ -273,24 +276,19 @@ static fig_bool_t fig_gif_read_image_data_(fig_state *state, fig_input *input, f
 
     for(;;) {
         if (accumulator_length < code_size) {
-            fig_uint8_t value;
-
-            if(sub_block_length == 0) {
-                if(!fig_input_read_u8(input, &sub_block_length)) {
-                    fig_state_set_error(state, "failed to read LZW sub-block length");
+            if(block_position >= block_size) {
+                if(!fig_gif_read_sub_block_(state, input, &block_size, block, 255, "failed to read LZW sub-block")) {
                     return 0;
                 }
-                if(sub_block_length == 0) {
+                if(block_size == 0) {
                     return 1;
                 }
+
+                block_position = 0;
             }
-            if(!fig_input_read_u8(input, &value)) {
-                fig_state_set_error(state, "unexpected end-of-stream during LZW decompression");
-                return 0;
-            }
-            accumulator |= value << accumulator_length;
+
+            accumulator |= block[block_position++] << accumulator_length;
             accumulator_length += 8;
-            --sub_block_length;
         } else {
             fig_uint16_t code = accumulator & code_mask;
 
@@ -303,7 +301,6 @@ static fig_bool_t fig_gif_read_image_data_(fig_state *state, fig_input *input, f
                 code_count = eoi_code + 1;
                 old_code = FIG_GIF_LZW_NULL_CODE;
             } else if(code == eoi_code) {
-                fig_input_seek(input, sub_block_length, FIG_SEEK_CUR);
                 return fig_gif_skip_sub_blocks_(input);
             } else if(old_code == FIG_GIF_LZW_NULL_CODE) {
                 if(code >= code_count) {

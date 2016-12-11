@@ -959,7 +959,9 @@ static fig_bool_t fig_gif_read_image_data_(fig_state *state, fig_input *input, f
     fig_uint8_t suffix_chars[FIG_GIF_LZW_MAX_CODES];
     fig_uint8_t char_stack[FIG_GIF_LZW_MAX_STACK_SIZE];
     fig_uint16_t char_stack_size;
-    fig_uint8_t sub_block_length;
+    fig_uint8_t block_position;
+    fig_uint8_t block_size;
+    fig_uint8_t block[255];
     fig_uint32_t accumulator;
     fig_uint8_t accumulator_length;
     fig_uint8_t first_char;
@@ -995,7 +997,8 @@ static fig_bool_t fig_gif_read_image_data_(fig_state *state, fig_input *input, f
 
     memset(char_stack, 0, sizeof(char_stack));
     char_stack_size = 0;
-    sub_block_length = 0;
+    block_position = 0;
+    block_size = 0;
     accumulator = 0;
     accumulator_length = 0;
     first_char = 0;
@@ -1006,24 +1009,19 @@ static fig_bool_t fig_gif_read_image_data_(fig_state *state, fig_input *input, f
 
     for(;;) {
         if (accumulator_length < code_size) {
-            fig_uint8_t value;
-
-            if(sub_block_length == 0) {
-                if(!fig_input_read_u8(input, &sub_block_length)) {
-                    fig_state_set_error(state, "failed to read LZW sub-block length");
+            if(block_position >= block_size) {
+                if(!fig_gif_read_sub_block_(state, input, &block_size, block, 255, "failed to read LZW sub-block")) {
                     return 0;
                 }
-                if(sub_block_length == 0) {
+                if(block_size == 0) {
                     return 1;
                 }
+
+                block_position = 0;
             }
-            if(!fig_input_read_u8(input, &value)) {
-                fig_state_set_error(state, "unexpected end-of-stream during LZW decompression");
-                return 0;
-            }
-            accumulator |= value << accumulator_length;
+
+            accumulator |= block[block_position++] << accumulator_length;
             accumulator_length += 8;
-            --sub_block_length;
         } else {
             fig_uint16_t code = accumulator & code_mask;
 
@@ -1036,7 +1034,6 @@ static fig_bool_t fig_gif_read_image_data_(fig_state *state, fig_input *input, f
                 code_count = eoi_code + 1;
                 old_code = FIG_GIF_LZW_NULL_CODE;
             } else if(code == eoi_code) {
-                fig_input_seek(input, sub_block_length, FIG_SEEK_CUR);
                 return fig_gif_skip_sub_blocks_(input);
             } else if(old_code == FIG_GIF_LZW_NULL_CODE) {
                 if(code >= code_count) {
@@ -1682,6 +1679,10 @@ struct fig_image {
     fig_uint32_t *render_data;
 };
 
+static void fig_image_set_error_size_overflow_(fig_state *state) {
+    fig_state_set_error(state, "image dimensions requested are too large");
+}
+
 fig_image *fig_create_image(fig_state *state) {
     if(state != NULL) {
         fig_image *self = (fig_image *) fig_state_get_allocator(state)(fig_state_get_userdata(state), NULL, 0, sizeof(fig_image));
@@ -1744,27 +1745,32 @@ void fig_image_set_origin_y(fig_image *self, size_t value) {
 }
 
 fig_bool_t fig_image_resize_indexed(fig_image *self, size_t width, size_t height) {
-    size_t old_size = self->indexed_width * self->indexed_height;
-    size_t new_size = width * height;    
-    if(new_size == 0) {
-        fig_state_get_allocator(self->state)(fig_state_get_userdata(self->state), self->indexed_data, old_size, 0);
-        self->indexed_data = NULL;
-        self->indexed_width = 0;
-        self->indexed_height = 0;
-        return 1;
-    } else {
-        fig_uint8_t *index_data;
-        index_data = (fig_uint8_t *) fig_state_get_allocator(self->state)(fig_state_get_userdata(self->state),
-            self->indexed_data, old_size, new_size);
-        if(index_data == NULL) {
-            fig_state_set_error_allocation_failed(self->state);
-            return 0;
-        } else {
-            self->indexed_width = width;
-            self->indexed_height = height;
-            self->indexed_data = index_data;
+    if(height == 0 || width <= ~(size_t) 0 / height) {
+        size_t old_size = self->indexed_width * self->indexed_height;
+        size_t new_size = width * height;    
+        if(new_size == 0) {
+            fig_state_get_allocator(self->state)(fig_state_get_userdata(self->state), self->indexed_data, old_size, 0);
+            self->indexed_data = NULL;
+            self->indexed_width = 0;
+            self->indexed_height = 0;
             return 1;
+        } else {
+            fig_uint8_t *index_data;
+            index_data = (fig_uint8_t *) fig_state_get_allocator(self->state)(fig_state_get_userdata(self->state),
+                self->indexed_data, old_size, new_size);
+            if(index_data == NULL) {
+                fig_state_set_error_allocation_failed(self->state);
+                return 0;
+            } else {
+                self->indexed_width = width;
+                self->indexed_height = height;
+                self->indexed_data = index_data;
+                return 1;
+            }
         }
+    } else {
+        fig_image_set_error_size_overflow_(self->state);
+        return 0;
     }
 }
 
@@ -1781,27 +1787,32 @@ fig_uint32_t *fig_image_get_render_data(fig_image *self) {
 }
 
 fig_bool_t fig_image_resize_render(fig_image *self, size_t width, size_t height) {
-    size_t old_size = self->render_width * self->render_height;
-    size_t new_size = width * height;
-    if(new_size == 0) {
-        fig_state_get_allocator(self->state)(fig_state_get_userdata(self->state), self->render_data, sizeof(fig_uint32_t) * old_size, 0);
-        self->render_data = NULL;
-        self->render_width = 0;
-        self->render_height = 0;
-        return 1;
-    } else {
-        fig_uint32_t *render_data;
-        render_data = (fig_uint32_t *) fig_state_get_allocator(self->state)(fig_state_get_userdata(self->state),
-            self->render_data, sizeof(fig_uint32_t) * old_size, sizeof(fig_uint32_t) * new_size);
-        if(render_data == NULL) {
-            fig_state_set_error_allocation_failed(self->state);
-            return 0;
-        } else {
-            self->render_width = width;
-            self->render_height = height;
-            self->render_data = render_data;
+    if(height == 0 || width <= ~(size_t) 0 / height) {
+        size_t old_size = self->render_width * self->render_height;
+        size_t new_size = width * height;
+        if(new_size == 0) {
+            fig_state_get_allocator(self->state)(fig_state_get_userdata(self->state), self->render_data, sizeof(fig_uint32_t) * old_size, 0);
+            self->render_data = NULL;
+            self->render_width = 0;
+            self->render_height = 0;
             return 1;
+        } else {
+            fig_uint32_t *render_data;
+            render_data = (fig_uint32_t *) fig_state_get_allocator(self->state)(fig_state_get_userdata(self->state),
+                self->render_data, sizeof(fig_uint32_t) * old_size, sizeof(fig_uint32_t) * new_size);
+            if(render_data == NULL) {
+                fig_state_set_error_allocation_failed(self->state);
+                return 0;
+            } else {
+                self->render_width = width;
+                self->render_height = height;
+                self->render_data = render_data;
+                return 1;
+            }
         }
+    } else {
+        fig_image_set_error_size_overflow_(self->state);
+        return 0;
     }
 }
 

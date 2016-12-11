@@ -27,6 +27,11 @@ int main(int argc, char **argv) {
     fig_input_free(input);
     fclose(f);
     if(animation == NULL) {
+        if(fig_state_get_error(state) != NULL) {
+            fputs("error while reading: ", stderr);
+            fputs(fig_state_get_error(state), stderr);
+            fputs("\n", stderr);
+        }
         return 1;
     }
 
