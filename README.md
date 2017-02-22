@@ -10,7 +10,7 @@ Supports:
 Using
 -----
 
-* **Single-header version**: Just drop the fig.h file that is included in `single_header/` folder into your project, put it on the include path.
+* **Single-header version**: Just drop the fig.h file that is included in `single_header/` folder into your project and start using the library.
 * **Visual Studio** (Windows): Make sure a recent version of Visual Studio is installed. The solution for Visual Studio 2015 is in the `vc/` folder. Open and Build Solution, or add the vcproj into an already existing solution and adjust as necessary.
 * **Makefile** (Mac / Linux / Windows (MinGW + GnuWin32) / Cygwin / etc): Make sure GNU Make, and either GCC or Clang is installed. Run `make` in the base directory of the repository.
 
